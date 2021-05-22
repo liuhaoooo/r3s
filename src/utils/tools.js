@@ -32,6 +32,7 @@ export const logout_tool = title => {
 // 重启
 export const restart_tool = title => {
     if (!title) {
+        loading_tool({ loading: true, progress: false, text: "正在重启，请勿做其他操作" })
         axiosRequest_post({ cmd: CMD.SYS_REBOOT, rebootType: 2 })
         return
     }
@@ -49,10 +50,6 @@ export const restart_tool = title => {
 }
 // 恢复出厂
 export const reset_tool = title => {
-    if (!title) {
-        axiosRequest_post({ cmd: CMD.RESTORE_DEFAULT })
-        return
-    }
     Modal.confirm({
         title,
         width: '350px',
@@ -62,7 +59,7 @@ export const reset_tool = title => {
         onOk() {
             loading_tool({
                 loading: true,
-                progress: true,
+                progress: false,
                 progressTime: 20,
                 text: "正在恢复出厂，请勿做其他操作",
             })

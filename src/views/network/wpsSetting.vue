@@ -43,6 +43,7 @@
         </a-form-model-item>
         <a-form-model-item label="WPS PIN" prop="wpsPin">
           <a-input
+            :maxLength="50"
             :disabled="!Form.wpsEnable || Form.wpsType == 'pbc'"
             v-model="Form.wpsPin"
             style="width: 60%; margin-right: 10px"
@@ -81,7 +82,7 @@ export default {
         wpsPin: "",
       },
       rules: {
-        wpsPin: [{ validator: wpsPin, trigger: "change" }],
+        wpsPin: [{ validator: wpsPin }],
       },
     };
   },
@@ -95,9 +96,9 @@ export default {
         subcmd,
       });
       if (subcmd == 0) {
-        this.Form.wpsEnable = res.wlan2g_wps_switch == "7";
+        this.Form.wpsEnable = res.wlan2g_wps_switch == "1";
       } else {
-        this.Form.wpsEnable = res.wlan5g_wps_switch == "7";
+        this.Form.wpsEnable = res.wlan5g_wps_switch == "1";
       }
     },
     //开始配置Pbc
@@ -146,9 +147,9 @@ export default {
         cmd: this.$CMD.WPS_CONFIG,
       };
       if (this.typeRadio == 0) {
-        json.wlan2g_wps_switch = e ? "7" : "0";
+        json.wlan2g_wps_switch = e ? "1" : "0";
       } else {
-        json.wlan5g_wps_switch = e ? "7" : "0";
+        json.wlan5g_wps_switch = e ? "1" : "0";
       }
       this.$axiosRequest_post(json).then((res) => {
         this.$loading_tool({ loading: false });

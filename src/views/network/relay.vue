@@ -1,14 +1,13 @@
 <template>
-  <div>
+  <div id="content">
     <headerInfo
       :labelText="$t('help.title1')"
       :spanText="$t('help.details1')"
     />
-    <a-empty :image-style="{ height: '100px' }" v-if="meshOpen">
-      <span slot="description"> {{ $t("relay.tips") }} </span>
-      <a-button type="primary" @click="closeMesh">
-        {{ $t("relay.closeMesh") }}
-      </a-button>
+    <a-empty :image-style="{ height: '100px' }" v-if="meshOpen || wifiAllClose">
+      <span slot="description"> {{ wifiAllClose?$t("relay.wifiAllClose"):$t("relay.tips") }} </span>
+      <a-button type="primary" @click="$router.push({name:'Wifi24g'})" v-if="wifiAllClose">{{ $t("relay.openWifi") }}</a-button>
+      <a-button type="primary" @click="closeMesh" v-else>{{ $t("relay.closeMesh") }}</a-button>
     </a-empty>
     <a-spin
       v-else
@@ -20,7 +19,9 @@
         :columns="columns"
         :data-source="data"
         bordered
-        :pagination="{ pageSize: 5 }"
+        :pagination="{ pageSize: 999 }"
+        :scroll="{ y: 350 }"
+        class="relay-table"
       >
         <template slot="select" slot-scope="text, record">
           <a-tag
@@ -34,30 +35,42 @@
         </template>
         <template slot="signal" slot-scope="text, record">
           <div
-            :class="'relay-signal relay-signal-img-' + text"
-            v-if="record.authmode == 'OPEN/NONE'"
+            class="relay-signal"
+            :style="{ 'background-image':  'url(' + require('../../assets/images/signal_icon/signal-'+text+'.png') + ')'}"
+            v-show="record.encryType == '0'"
           ></div>
           <div
-            :class="'relay-signal relay-signal-img-lock-' + text"
-            v-else
+            class="relay-signal"
+            :style="{ 'background-image':  'url(' + require('../../assets/images/signal_icon/signal-lock-'+text+'.png') + ')'}"
+            v-show="record.encryType != '0'"
           ></div>
         </template>
-        <template slot="authmode" slot-scope="text">
-          <div>{{ text.split("/")[0] }}</div>
+        <template slot="encryType" slot-scope="text">
+          <div>{{ authentication[text] }}</div>
         </template>
         <template slot="title">
           <div class="relay-title">
             <div>
               {{ $t("relay.selectWifi") }}
               <a-radio-group v-model="wifi_type">
-                <a-radio value="2G">2.4G</a-radio>
-                <a-radio value="5G">5G</a-radio>
+                <a-tooltip placement="left">
+                  <template slot="title" v-if="!wifiOpen_24">
+                    <span>2.4GWi-Fi已关闭</span>
+                  </template>
+                  <a-radio value="2G" :disabled="!wifiOpen_24">2.4G</a-radio>
+                </a-tooltip>
+                <a-tooltip placement="right">
+                  <template slot="title" v-if="!wifiOpen_5">
+                    <span>5GWi-Fi已关闭</span>
+                  </template>
+                  <a-radio value="5G" :disabled="!wifiOpen_5">5G</a-radio>
+                </a-tooltip>
               </a-radio-group>
             </div>
-            <div>
+            <!-- <div>
               {{ $t("relay.needSync") }}
               <a-switch v-model="needSync" />
-            </div>
+            </div> -->
             <a-button size="small" type="primary" @click="getData">{{
               $t("relay.scann")
             }}</a-button>
@@ -68,9 +81,9 @@
             {{ $t("relay.relayNetwork") }}
             <a>{{ currentData.ssid || "无" }}</a>
             {{ $t("relay.password") }}
-            <a>{{ currentData.passwd || "无" }}</a>
+            <a>{{ currentData.encryKey || "无" }}</a>
             {{ $t("relay.status") }}
-            <a>{{ currentData.success_flag == "1" ? "已连接" : "未连接" }}</a>
+            <a>{{ currentData.status == "1" ? "已连接" : "未连接" }}</a>
           </div>
         </template>
       </a-table>
@@ -91,13 +104,13 @@
         ref="Form"
         :model="Form"
         :rules="{
-          password: [{ validator: Validate.WifiPwd, trigger: 'change' }],
+          password: [{ validator: Validate.WifiPwd }],
         }"
         :label-col="{ span: 8 }"
         :wrapper-col="{ span: 12 }"
       >
         <a-form-model-item :label="$t('relay.wifiPwd')" prop="password">
-          <a-input-password v-model="Form.password" />
+          <a-input-password v-model="Form.password" :maxLength="50"/>
         </a-form-model-item>
       </a-form-model>
     </a-modal>
@@ -130,9 +143,9 @@ const columns = [
   },
   {
     title: i18n.t("relay.authmode"),
-    dataIndex: "authmode",
+    dataIndex: "encryType",
     width: 230,
-    scopedSlots: { customRender: "authmode" },
+    scopedSlots: { customRender: "encryType" },
   },
   {
     title: i18n.t("relay.signal"),
@@ -142,6 +155,14 @@ const columns = [
     scopedSlots: { customRender: "signal" },
   },
 ];
+const authentication = {
+  "0":"OPEN",
+  "1":"WPA-PSK",
+  "2":"WPA2-PSK",
+  "3":"WPA/WPA2-PSK",
+  "4":"WPA3-PSK",
+  "5":"WPA2/WPA3-PSK",
+} 
 export default {
   components: {
     headerInfo,
@@ -156,27 +177,41 @@ export default {
       tmpWifiInfo: {},
       columns,
       wifi_type: "2G",
-      needSync: false,
+      // needSync: false,
       Form: {
         password: "",
       },
       passwordModal: false,
       Validate,
       currentData: {},
+      authentication,
     };
   },
   computed: {
     meshOpen: () => store.getters["sysStatus/meshOpen"],
+    wifiOpen_24: () => store.getters["sysStatus/wifiOpen_24"],
+    wifiOpen_5: () => store.getters["sysStatus/wifiOpen_5"],
+    wifiAllClose(){
+      return !this.wifiOpen_24 && !this.wifiOpen_5
+    },
   },
-  mounted() {
-    this.getData();
+  async mounted() {
+    await store.dispatch("sysStatus/getWifiInfo")
+    if(this.wifiOpen_24 || this.wifiOpen_5){
+      this.wifi_type = this.wifiOpen_24 ? "2G" : "5G"
+      // this.getData();
+    }else{
+      this.wifi_type = "2G"
+    }
     this.getRelayStatus();
+  },
+  beforeDestroy() {
+    clearInterval(window.getRelayStatus)
   },
   methods: {
     async getRelayStatus() {
-      let res = await this.$axiosRequest_get({ cmd: this.$CMD.RELAY_SETTING });
-      console.log(res, "中继信息");
-      this.currentData = res;
+      let res = await this.$axiosRequest_post({ cmd: this.$CMD.RELAY_SETTING });
+      this.currentData = res || {};
     },
     async getStatus() {
       let json = {
@@ -187,69 +222,73 @@ export default {
       };
       this.$axiosRequest_get(json).then((res) => {
         console.log(res.success_flag, "success_flag");
-        if (this.index > 20) {
-          this.$loading_tool({ loading: false });
-          this.$message.error("中继超时失败");
-          return;
-        }
         if (res.success_flag == "1") {
-          store.dispatch("sysStatus/getNetworkInfo_post"); //更新vuex
-          this.getRelayStatus();
+          clearInterval(window.getRelayStatus)
           this.$loading_tool({ loading: false });
+          store.dispatch("sysStatus/getNetworkInfo"); //更新vuex
           this.$message.success("中继成功");
+          this.getRelayStatus();
         } else {
-          setTimeout(() => {
-            this.getStatus();
-            this.index++;
-          }, 3000);
+          this.index++
+        }
+        if(this.index > 20){
+          this.$message.error("中继超时失败");
+          this.$loading_tool({ loading: false });
+          this.getRelayStatus();
+          clearInterval(window.getRelayStatus)
         }
       });
     },
     async getData() {
       if (this.meshOpen) return;
       this.loading = true;
-      let res = await this.$axiosRequest_post({
+      let res = await this.$axiosRequest_get({
         cmd: this.$CMD.RELAY_SETTING,
         wifi_type: this.wifi_type,
       });
-      for (let i = 0; i < res.dataList.length; i++) {
-        res.dataList[i].key = i;
+      if("dataList" in res){
+        for (let i = 0; i < res.dataList.length; i++) {
+          res.dataList[i].key = i;
+        }
+        this.data = res.dataList;
       }
-      this.data = res.dataList;
       this.loading = false;
     },
     selectWifi(e) {
-      if (e.authmode != "OPEN/NONE") {
+      if (e.encryType != "0") {
         this.passwordModal = true;
         this.tmpWifiInfo = e;
         return;
       }
       this.relayWifi(e);
     },
-    relayWifi(e) {
+    async relayWifi(e) {
       this.$loading_tool({
         loading: true,
         text: "正在中继网络，请勿做其他操作",
       });
       let json = {
         ssid: e.ssid,
-        needSync: this.needSync ? "1" : "0",
-        wpa_encryKey: this.Form.password,
-        encryType: e.authmode.split("/")[0],
-        wpa_encry: e.authmode.split("/")[1],
+        encryKey: this.Form.password,
+        encryType:e.encryType,
         cmd:
           this.wifi_type == "2G"
             ? this.$CMD.RELAYSET_4G
             : this.$CMD.RELAYSET_5G,
       };
-      this.$axiosRequest_post(json).then((res) => {
-        if (res.success) {
-          this.index = 0;
-          this.getStatus();
-        } else {
-          this.$message.error(this.$t("tips.setFail"));
-        }
-      });
+      // if(this.wifi_type == "2G"){
+      //   json.needSync = this.needSync ? "1" : "0"
+      // }else{
+      //   json.needSync = this.needSync ? "3" : "2"
+      // }
+      try {
+        await this.$axiosRequest_post(json);
+      } catch (error) {}
+      this.index = 0
+      clearInterval(window.getRelayStatus)
+      window.getRelayStatus = setInterval(()=>{
+        this.getStatus();
+      },3000)
     },
     clickRelay() {
       this.$refs.Form.validate((valid) => {
@@ -276,7 +315,8 @@ export default {
           setTimeout(() => {
             store.dispatch("sysStatus/getMeshStatus").then(() => {
               this.$loading_tool({ loading: false });
-              this.getData();
+              this.$message.success(this.$t("tips.setSuccess"));
+              // this.getData();
             });
           }, 8000);
         } else {
@@ -288,36 +328,14 @@ export default {
   },
 };
 </script>
-
 <style lang="less">
-.relay-signal-img-1 {
-  background-image: url("../../assets/images/signal_icon/signal-1.png");
-}
-.relay-signal-img-2 {
-  background-image: url("../../assets/images/signal_icon/signal-2.png");
-}
-.relay-signal-img-3 {
-  background-image: url("../../assets/images/signal_icon/signal-3.png");
-}
-.relay-signal-img-4 {
-  background-image: url("../../assets/images/signal_icon/signal-4.png");
-}
-.relay-signal-img-5 {
-  background-image: url("../../assets/images/signal_icon/signal-5.png");
-}
-.relay-signal-img-lock-1 {
-  background-image: url("../../assets/images/signal_icon/signal-lock-1.png");
-}
-.relay-signal-img-lock-2 {
-  background-image: url("../../assets/images/signal_icon/signal-lock-2.png");
-}
-.relay-signal-img-lock-3 {
-  background-image: url("../../assets/images/signal_icon/signal-lock-3.png");
-}
-.relay-signal-img-lock-4 {
-  background-image: url("../../assets/images/signal_icon/signal-lock-4.png");
-}
-.relay-signal-img-lock-5 {
-  background-image: url("../../assets/images/signal_icon/signal-lock-5.png");
+.relay-table{
+  .ant-table-pagination.ant-pagination{
+    display: none !important;
+  };
+  .ant-table.ant-table-bordered .ant-table-footer,
+  .ant-table.ant-table-bordered .ant-table-title{
+    padding: 10px;
+  }
 }
 </style>

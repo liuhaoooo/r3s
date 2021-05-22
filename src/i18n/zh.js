@@ -19,7 +19,7 @@ const message = {
         "setFail": "设置失败",
         "setSuccess": "设置成功",
         "repeated": "规则不能重复",
-        "fileFormatError": "上传文件格式不正确",
+        "fileFormatError": "文件格式不正确",
         "uploadSuccess": "上传成功",
         "uploadFail": "上传失败",
         "samePass": "两次密码不一致",
@@ -29,7 +29,10 @@ const message = {
         "isRelay":"中继模式下不支持MESH功能",
         "sysSetting":"请耐心等待系统进行配置...",
         "isBradge_Relay":"桥接、中继模式下不可用",
-        "moreHelp":"更多帮助"
+        "moreHelp":"更多帮助",
+        "selectTime":"请选择时间",
+        "oldPwdErr":"旧密码错误",
+        "week_empty":"星期不能为空"
     },
     "home": {
         "reset": "恢复出厂",
@@ -37,18 +40,25 @@ const message = {
         "logout": "退出登录",
     },
     "headerMeun": {
+        "home":"主页",
+        "networkSet":"上网设置",
+        "wifiSet":"Wi-Fi设置",
+        "terminal":"终端管理",
+        "more":"更多",
         "status": "状态",
         "net": "网络",
         "safe": "安全",
         "apply": "应用",
         "manage": "管理",
         "diagnosis": "诊断",
-        "help": "帮助"
+        "help": "帮助",
     },
     "network_page": {
+        "networkSet":"网络设置",
         "broadbandSet": "宽带设置",
         "relay": "无线中继",
         "relaySetting": "中继设置",
+        "iptv":"IPTV",
         "apSet": "AP设置",
         "lanSet": "设备配置",
         "dhcp4": "DHCP设置",
@@ -59,8 +69,7 @@ const message = {
         "wlan5gSet": "WLAN5G网络配置",
         "wlan5gAdvSet": "WLAN5G网络高级配置",
         "wpsSetting": "WPS 设置",
-        "timeSet": "时间管理",
-        "routeSet": "路由配置",
+        "routeSet": "静态路由",
         "andlink": "ANDLINK配置",
         "mesh": "MESH"
     },
@@ -91,7 +100,7 @@ const message = {
         "vice_dns": "辅 DNS",
         "ipBeginEnd": "IP地址池",
         "expireTime": "租期时间",
-        "lanIpSame": "不能与设备LAN IP地址相同",
+        "lanIpSame": "不能输入和Lan IP相同的IP地址",
         "add": "添加"
     },
     "route": {
@@ -103,10 +112,11 @@ const message = {
         "operation": "操作",
         "add": "添加",
         "clearAll": "清空所有",
+        "lanIpSame": "不能输入和Lan IP同网段的目的IP地址",
     },
     "firewall": {
         "filter_acl": "ACL过滤",
-        "firewall": "基础设置",
+        "firewall": "防火墙",
         "filter": "过滤规则",
         "urlFilter": "URL过滤",
         "ipmac": "IP MAC绑定",
@@ -168,6 +178,7 @@ const message = {
         "sysUpdate": "网页升级",
         "configUpdate": "配置升级",
         "changePassword": "修改密码",
+        "timeZoneSetting": "时区设置",
         "timing": "定时重启",
         "userType": "用户类型",
         "userAcc": "普通用户",
@@ -176,6 +187,28 @@ const message = {
         "newPass": "新密码",
         "confirmPass": "重复新密码",
         "sysSetting": "系统设置",
+        "scheduledRestart": "定时重启",
+        "status":"状态",
+        "RestartTime":"定时重启时间",
+        "week0":"周日",
+        "week1":"周一",
+        "week2":"周二",
+        "week3":"周三",
+        "week4":"周四",
+        "week5":"周五",
+        "week6":"周六",
+        "networkLock":"锁网开关：",
+        "modemLogSwitch":"模块LOG开关：",
+        "exportLog":"导出日志",
+        "uploadLog":"导入配置",
+        "selectFile":"选择文件",
+        "telnet":"Telnet：",
+        "ssh":"ssh：",
+        "exportConfig":"导出配置",
+        "update_config":"升级配置",
+        "uploadFile":"上传文件",
+        "sysTime":"当前系统时间：",
+        "langChange":"语言切换："
     },
     "diagnosis": {
         "sysLog": "系统日志",
@@ -218,6 +251,8 @@ const message = {
         "status": "状态：",
         "inputWifipwd": "输入Wi-Fi密码",
         "wifiPwd": "Wi-Fi密码",
+        "wifiAllClose":"Wi-Fi已关闭，不能使用该功能",
+        "openWifi":"前往打开Wi-Fi",
         //columns
         "select": "选择",
         "ssid": "无线名称",
@@ -242,6 +277,13 @@ const message = {
         "startMesh":"启动组网",
         "meshEnable":"组网开关"
     },
+    "iptv":{
+        "iptv_enable":"开启IPTV",
+        "vlan_tag":"VLAN标签",
+        "vlan_set":"设置VLAN",
+        "range":"(范围：1-4095)",
+        "band_lan":"绑定LAN口"
+    },
     "help": {
         "title0": "宽带设置",
         "title1": "无线中继",
@@ -255,7 +297,7 @@ const message = {
         "title9": "WPS设置",
         "title10": "路由配置",
         "title11": "ANDLINK配置",
-        "title12": "防火墙基础设置",
+        "title12": "防火墙",
         "title13": "IP、MAC、端口过滤",
         "title14": "URL过滤",
         "title15": "IP MAC绑定",
@@ -267,6 +309,9 @@ const message = {
         "title21": "系统日志",
         "title22": "Ping",
         "title23": "Trace",
+        "title24": "定时重启",
+        "title25": "时区设置",
+        "title26": "IPTV设置",
         //details
         "details0": "宽带设置配置，选择一个WAN连接，修改其用户名和密码，以保证设备可以上网。",
         "details1":"无线中继，注意：开启无线中继模式将自动关闭Mesh功能。",
@@ -280,7 +325,7 @@ const message = {
         "details9":"",
         "details10":"",
         "details11":"",
-        "details12":"对防火墙功能的一些基础配置",
+        "details12":"对防火墙功能的一些配置",
         "details13":"可对IP地址、MAC地址、端口号的黑白名单进行增加删除修改",
         "details14":"可对URL地址的黑白名单进行增加删除修改",
         "details15":"终端MAC和IP地址要与目标MAC地址和IP地址一致，否则可能导致终端网络异常",
@@ -292,6 +337,9 @@ const message = {
         "details21":"可查看系统操作日志。",
         "details22":"ping用于确定本地主机是否能与另一台主机成功交换(发送与接收)数据包。",
         "details23":"Trace用于确定本地主机是否能与另一台主机成功交换(发送与接收)数据包。",
+        "details24":"设置路由器定时重启功能后，路由器将在每周您设置的时间自动重启。",
+        "details25":"",
+        "details26":"",
     }
 }
 export default message

@@ -4,21 +4,30 @@
     <a-row type="flex" justify="start">
       <a-col :span="6" :offset="1">
         <div class="sysSetting-item">
-          <label for="">锁网开关：</label>
+          <label for="">{{$t('manage.networkLock')}}</label>
           <div>
             <a-switch v-model="networkLock" @change="postData_networkLock" />
           </div>
         </div>
         <div class="sysSetting-item">
-          <label for="">模块LOG开关：</label>
+          <label for="">{{$t('manage.modemLogSwitch')}}</label>
           <div>
             <a-switch v-model="modemLogSwitch" @change="postData_modeLog" />
           </div>
         </div>
         <div class="sysSetting-item">
-          <label for="">导出日志：</label>
+          <label for="">{{$t('manage.langChange')}}</label>
+          <div>
+            <a-select default-value="zh" @change="langChange" size="small" style="width:100px">
+              <a-select-option value="zh">简体中文</a-select-option>
+              <a-select-option value="en">English</a-select-option>
+            </a-select>
+          </div>
+        </div>
+        <div class="sysSetting-item">
+          <label for="">{{$t('manage.exportLog')}}：</label>
           <a-button size="small" type="primary" @click="exportLog"
-            >导出日志</a-button
+            >{{$t('manage.exportLog')}}</a-button
           >
           <a
             href="/logs_backup.tar.gz.encode"
@@ -28,7 +37,7 @@
           ></a>
         </div>
         <div class="sysSetting-item">
-          <label for="">导入配置：</label>
+          <label for="">{{$t('manage.uploadLog')}}：</label>
           <a-upload
             :multiple="false"
             action=""
@@ -36,31 +45,31 @@
             :file-list="fileList"
             :before-upload="() => false"
           >
-            <a-button size="small" type="primary">选择文件</a-button>
+            <a-button size="small" type="primary">{{$t('manage.selectFile')}}</a-button>
           </a-upload>
           <a-button 
             size="small" 
             type="primary" 
             :disabled="fileList.length == 0" 
             style="margin-left:10px" 
-            @click="upload">导入配置</a-button>
+            @click="upload">{{$t('manage.uploadLog')}}</a-button>
         </div>
       </a-col>
       <a-col :span="6" :offset="4">
         <div class="sysSetting-item">
-          <label for="">Telnet：</label>
+          <label for="">{{$t('manage.telnet')}}</label>
           <div>
             <a-switch v-model="telnet" @change="postData_server" />
           </div>
         </div>
         <div class="sysSetting-item">
-          <label for="">ssh：</label>
+          <label for="">{{$t('manage.ssh')}}</label>
           <div><a-switch v-model="ssh" @change="postData_server" /></div>
         </div>
         <div class="sysSetting-item">
-          <label for="">导出配置：</label>
+          <label for="">{{$t('manage.exportConfig')}}：</label>
           <a-button size="small" type="primary" @click="exportConfig"
-            >导出配置</a-button
+            >{{$t('manage.exportConfig')}}</a-button
           >
           <a
             href="/cfg_export_config_file.conf"
@@ -70,7 +79,7 @@
           ></a>
         </div>
         <div class="sysSetting-item">
-          <label for="">配置升级：</label>
+          <label for="">{{$t('manage.update_config')}}：</label>
           <a-upload
             :multiple="false"
             action=""
@@ -79,7 +88,7 @@
             :file-list="fileList_config"
             :before-upload="() => false"
           >
-            <a-button size="small" type="primary">选择文件</a-button>
+            <a-button size="small" type="primary">{{$t('manage.selectFile')}}</a-button>
           </a-upload>
           <a-button 
             v-if="!readyconfigUpdate"
@@ -87,13 +96,13 @@
             size="small" 
             type="primary" 
             style="margin-left:10px" 
-            @click="upload_config">上传文件</a-button>
+            @click="upload_config">{{$t('manage.uploadFile')}}</a-button>
           <a-button 
             v-else
             size="small" 
             type="primary" 
             style="margin-left:10px" 
-            @click="update_config">升级配置</a-button>
+            @click="update_config">{{$t('manage.update_config')}}</a-button>
         </div>
       </a-col>
     </a-row>
@@ -131,6 +140,11 @@ export default {
     this.getData_modeLog();
   },
   methods: {
+    //语言切换
+    langChange(lang) {
+      this.$i18n.locale = lang;
+      // window.location.reload();
+    },
     //server
     async getData_server() {
       let res = await this.$axiosRequest_get({

@@ -49,13 +49,13 @@
           </a-radio-group>
         </a-form-model-item>
         <a-form-model-item :label="$t('route.ip')" prop="ip">
-          <a-input v-model="FormData.ip" />
+          <a-input v-model="FormData.ip" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('route.netmask')" prop="netmask">
-          <a-input v-model="FormData.netmask" />
+          <a-input v-model="FormData.netmask" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('route.gateway')" prop="gateway">
-          <a-input v-model="FormData.gateway" />
+          <a-input v-model="FormData.gateway" :maxLength="50"/>
         </a-form-model-item>
       </a-form-model>
     </a-modal>
@@ -148,7 +148,7 @@ const columns = [
     title: i18n.t("route.status"),
     dataIndex: "valid",
     width: 70,
-    className: 'column-center-th column-center-td',
+    className: "column-center-th column-center-td",
     scopedSlots: { customRender: "valid" },
   },
   {
@@ -156,7 +156,7 @@ const columns = [
     dataIndex: "ifName",
     ellipsis: true,
     width: 90,
-    className: 'column-center-th column-center-td',
+    className: "column-center-th column-center-td",
     scopedSlots: { customRender: "ifName" },
   },
   {
@@ -180,7 +180,7 @@ const columns = [
   {
     title: i18n.t("route.operation"),
     width: 110,
-    className: 'column-center-th column-center-td',
+    className: "column-center-th column-center-td",
     dataIndex: "operation",
     scopedSlots: { customRender: "operation" },
   },
@@ -191,7 +191,37 @@ export default {
     emptyBradgeRelay,
   },
   data() {
+    const checkIP = (rule, value, callback) => {
+      if (!value) {
+        return callback(new Error(this.$t("tips.empty")));
+      }
+      let res1 = [],
+        res2 = [],
+        addr1 = this.lanIp.split("."),
+        addr2 = value.split("."),
+        mask = this.FormData.netmask.split(".");
+      for (let i = 0, ilen = addr1.length; i < ilen; i++) {
+        res1.push(parseInt(addr1[i]) & parseInt(mask[i]));
+        res2.push(parseInt(addr2[i]) & parseInt(mask[i]));
+      }
+      if (res1.join(".") == res2.join(".")) {
+        callback(new Error(this.$t("dhcp.lanIpSame")));
+      }
+      const reg = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+      if (
+        reg.test(value) &&
+        RegExp.$1 < 256 &&
+        RegExp.$2 < 256 &&
+        RegExp.$3 < 256 &&
+        RegExp.$4 < 256
+      ) {
+        callback();
+      } else {
+        callback(new Error(this.$t("tips.formatError")));
+      }
+    };
     return {
+      lanIp: "",
       Validate,
       data: [], //最终渲染到表单的数据
       cacheData: [], //表单缓存数据
@@ -205,9 +235,9 @@ export default {
         gateway: "",
       },
       rules: {
-        ip: [{ validator: Validate.checkIP, trigger: "change" }],
-        netmask: [{ validator: Validate.checkNetMask, trigger: "change" }],
-        gateway: [{ validator: Validate.checkIP, trigger: "change" }],
+        ip: [{ validator: checkIP }],
+        netmask: [{ validator: Validate.checkNetMask }],
+        gateway: [{ validator: Validate.checkIP }],
       },
     };
   },
@@ -219,6 +249,10 @@ export default {
   },
   methods: {
     async getData() {
+      let res_lan = await this.$axiosRequest_get({
+        cmd: this.$CMD.NETWORK_CONFIG,
+      });
+      this.lanIp = res_lan.lanIp;
       let res = await this.$axiosRequest_get({
         cmd: this.$CMD.ROUTER_TABLE,
       });
@@ -231,7 +265,7 @@ export default {
       }
     },
     postData() {
-      let datas = [...this.data];
+      let datas = JSON.parse(JSON.stringify(this.data));
       for (let i in datas) {
         datas[i].netmaskBits = 24;
         delete datas[i].key;
@@ -331,6 +365,19 @@ export default {
       const targetCache = newCacheData.filter((item) => key === item.key)[0]; //修改前
       if (this.check(target)) {
         this.$message.error(this.$t("tips.formatError"));
+        return;
+      }
+      let res1 = [],
+        res2 = [],
+        addr1 = this.lanIp.split("."),
+        addr2 = target.ip.split("."),
+        mask = target.netmask.split(".");
+      for (let i = 0, ilen = addr1.length; i < ilen; i++) {
+        res1.push(parseInt(addr1[i]) & parseInt(mask[i]));
+        res2.push(parseInt(addr2[i]) & parseInt(mask[i]));
+      }
+      if (res1.join(".") == res2.join(".")) {
+        this.$message.error(this.$t("route.lanIpSame"));
         return;
       }
       let tmp = newCacheData.filter(

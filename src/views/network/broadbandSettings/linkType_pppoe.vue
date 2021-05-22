@@ -19,16 +19,16 @@
         prop="mtu_pppoe"
         v-if="Form.protocol_type == 'IPv4'"
       >
-        <a-input v-model.number="Form.mtu_pppoe" />
+        <a-input v-model.number="Form.mtu_pppoe" :maxLength="50"/>
       </a-form-model-item>
       <a-form-model-item label="MTU[1280-1492]" prop="mtu_pppoe" v-else>
-        <a-input v-model.number="Form.mtu_pppoe" />
+        <a-input v-model.number="Form.mtu_pppoe" :maxLength="50"/>
       </a-form-model-item>
       <a-form-model-item label="用户名" prop="userName">
-        <a-input v-model="Form.userName" />
+        <a-input v-model="Form.userName" :maxLength="32"/>
       </a-form-model-item>
       <a-form-model-item label="密码" prop="password">
-        <a-input-password v-model="Form.password" />
+        <a-input-password v-model="Form.password" :maxLength="32"/>
       </a-form-model-item>
       <!-- IPv6 ip -->
       <div v-if="Form.protocol_type != 'IPv4'">
@@ -43,7 +43,7 @@
           prop="IPv6_gateway"
           v-if="Form.IPv6_wan_type != 'SLAAC'"
         >
-          <a-input v-model="Form.IPv6_gateway" />
+          <a-input v-model="Form.IPv6_gateway" :maxLength="50"/>
         </a-form-model-item>
       </div>
       <!-- pd使能分组 -->
@@ -60,14 +60,14 @@
           </a-form-model-item>
           <div v-if="Form.prefix == 'Manual'">
             <a-form-model-item label="前缀地址" prop="prefix_add">
-              <a-input v-model="Form.prefix_add" />
+              <a-input v-model="Form.prefix_add" :maxLength="50"/>
             </a-form-model-item>
-            <a-form-model-item label="首选寿命[600-4294967295]" prop="preferred_life">
-              <a-input v-model="Form.preferred_life" />
+            <!-- <a-form-model-item label="首选寿命[600-4294967295]" prop="preferred_life">
+              <a-input v-model="Form.preferred_life" :maxLength="50"/>
             </a-form-model-item>
             <a-form-model-item label="有效寿命[600-4294967295]" prop="Effective_life">
-              <a-input v-model="Form.Effective_life" />
-            </a-form-model-item>
+              <a-input v-model="Form.Effective_life" :maxLength="50"/>
+            </a-form-model-item> -->
           </div>
         </div>
       </div>
@@ -111,8 +111,8 @@ export default {
         PD_enable: false, //PD使能
         prefix: "Auto", //前缀模式
         prefix_add: "", //前缀地址
-        preferred_life: "", //首选寿命
-        Effective_life: "", //有效寿命
+        // preferred_life: "", //首选寿命
+        // Effective_life: "", //有效寿命
       },
     };
   },
@@ -136,13 +136,13 @@ export default {
   computed: {
     rules() {
       return {
-        userName:[{validator: Validate.checkNull, trigger: "change"}],
-        password:[{validator: Validate.checkNull, trigger: "change"}],
-        mtu_pppoe: [{validator: this.Form.protocol_type == "IPv4" ? mtu_ip1 : mtu_ip2, trigger: "change"}],
-        IPv6_gateway:[{validator: Validate.checkIPv6, trigger: "change"}],
-        prefix_add:[{validator: Validate.checkIPv6_prefix, trigger: "change"}],
-        preferred_life:[{validator: check_preferred, trigger: "change"}],
-        Effective_life:[{validator: check_Effective, trigger: "change"}],
+        userName:[{validator: Validate.normal}],
+        password:[{validator: Validate.normal}],
+        mtu_pppoe: [{validator: this.Form.protocol_type == "IPv4" ? mtu_ip1 : mtu_ip2}],
+        IPv6_gateway:[{validator: Validate.checkIPv6}],
+        prefix_add:[{validator: Validate.checkIPv6_prefix}],
+        // preferred_life:[{validator: check_preferred}],
+        // Effective_life:[{validator: check_Effective}],
       };
     },
   },

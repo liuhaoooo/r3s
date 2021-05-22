@@ -20,17 +20,21 @@
         button-style="solid"
         v-model="ruleType"
         @change="ruleTypeChange"
-         v-show="!isBradge_Relay"
       >
-        <a-radio-button value="mac" class="tab_wifi_item">
+        <a-tooltip placement="bottom">
+          <a-radio-button value="mac" class="tab_wifi_item">
           {{ $t("firewall.macfilter") }}
-        </a-radio-button>
-        <a-radio-button value="ip" class="tab_wifi_item">
+          </a-radio-button>
+          <template slot="title" v-if="isBradge_Relay">
+            <span>{{$t('tips.isBradge_Relay')}}</span>
+          </template>
+          <a-radio-button value="ip" class="tab_wifi_item" :disabled="isBradge_Relay">
           {{ $t("firewall.ipfilter") }}
-        </a-radio-button>
-        <a-radio-button value="port" class="tab_wifi_item">
+          </a-radio-button>
+          <a-radio-button value="port" class="tab_wifi_item" :disabled="isBradge_Relay">
           {{ $t("firewall.portfilter") }}
-        </a-radio-button>
+          </a-radio-button>
+        </a-tooltip>
       </a-radio-group>
       <a-button
         type="dashed"
@@ -76,7 +80,7 @@
           </a-radio-group>
         </a-form-model-item>
         <a-form-model-item :label="$t('firewall.ip')" prop="ip">
-          <a-input v-model="Form_ip.ip" />
+          <a-input v-model="Form_ip.ip" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('firewall.remark')" prop="remark">
           <a-input v-model="Form_ip.remark" type="textarea" :maxLength="80" />
@@ -88,7 +92,7 @@
         ref="Form_port"
         :model="Form_port"
         :rules="{
-          port: [{ validator: Validate.checkPort, trigger: 'change' }],
+          port: [{ validator: Validate.checkPort }],
         }"
         :label-col="{ span: 8 }"
         :wrapper-col="{ span: 12 }"
@@ -107,7 +111,7 @@
           </a-radio-group>
         </a-form-model-item>
         <a-form-model-item :label="$t('firewall.port')" prop="port">
-          <a-input v-model="Form_port.port" />
+          <a-input v-model="Form_port.port" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('firewall.remark')" prop="remark">
           <a-input v-model="Form_port.remark" type="textarea" :maxLength="80" />
@@ -118,7 +122,7 @@
         v-show="ruleType == 'mac'"
         ref="Form_mac"
         :model="Form_mac"
-        :rules="{ mac: [{ validator: Validate.checkMac, trigger: 'change' }] }"
+        :rules="{ mac: [{ validator: Validate.checkMac }] }"
         :label-col="{ span: 8 }"
         :wrapper-col="{ span: 12 }"
       >
@@ -129,7 +133,7 @@
           </a-radio-group>
         </a-form-model-item>
         <a-form-model-item :label="$t('firewall.mac')" prop="mac">
-          <a-input v-model="Form_mac.mac" />
+          <a-input v-model="Form_mac.mac" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('firewall.remark')" prop="remark">
           <a-input v-model="Form_mac.remark" type="textarea" :maxLength="80" />
@@ -196,6 +200,7 @@
       >
         <a-input
           :key="col"
+          :maxLength="50"
           v-if="record.editable"
           style="margin: -5px 0"
           :value="text"
@@ -286,9 +291,9 @@ export default {
     isBradge_Relay: () => store.getters["sysStatus/isBradge_Relay"],
     ipRules() {
       if (this.Form_ip.ippro == "IPV4") {
-        return { ip: [{ validator: Validate.checkIP, trigger: "change" }] };
+        return { ip: [{ validator: Validate.checkIP }] };
       } else {
-        return { ip: [{ validator: Validate.checkIPv6, trigger: "change" }] };
+        return { ip: [{ validator: Validate.checkIPv6 }] };
       }
     },
   },
@@ -390,7 +395,7 @@ export default {
         port: this.$CMD.PORT_FILTER,
         mac: this.$CMD.MAC_FILTER,
       };
-      let datas = [...this.data];
+      let datas = JSON.parse(JSON.stringify(this.data));
       for (let i in datas) {
         delete datas[i].key;
       }

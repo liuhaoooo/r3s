@@ -1,28 +1,32 @@
 <template>
   <div>
     <headerInfo
-      :labelText="$t('help.title16')"
-      :spanText="$t('help.details16')"
+      :labelText="$t('help.title24')"
+      :spanText="$t('help.details24')"
     />
     <!-- 添加删除 -->
     <div class="tab_filter">
-      <a-button type="dashed" icon="plus" @click="clickAdd" :disabled="isBradge_Relay">
-        {{ $t("firewall.addRule") }}
+      <a-button type="dashed" icon="plus" @click="clickAdd">
+        {{ $t("route.add") }}
       </a-button>
+      <div>
+        <label for="">{{$t('manage.sysTime')}}</label>
+        <span :style="'color:'+themeColor">{{systime}}</span>
+      </div>
       <a-button
         type="dashed"
         icon="delete"
-        :disabled="data.length == 0||isBradge_Relay"
+        :disabled="data.length == 0"
         @click="deleteAll"
       >
-        {{ $t("firewall.clearRule") }}
+        {{ $t("route.clearAll") }}
       </a-button>
     </div>
     <!-- 弹窗 -->
     <a-modal
       centered
       v-model="visible"
-      :title="$t('firewall.addRule')"
+      :title="$t('route.add')"
       :okText="$t('tips.ok')"
       :cancelText="$t('tips.cancel')"
       @ok="addRuleSave"
@@ -30,34 +34,23 @@
       :closable="false"
       :maskClosable="false"
     >
-      <a-form-model
-        ref="Form"
-        :model="FormData"
-        :rules="rules"
-        :label-col="{ span: 8 }"
-        :wrapper-col="{ span: 12 }"
-      >
-        <a-form-model-item :label="$t('firewall.protocol')" prop="protocol">
-          <a-radio-group v-model="FormData.protocol">
-            <a-radio value="all"> all </a-radio>
-            <a-radio value="tcp"> tcp </a-radio>
-            <a-radio value="udp"> udp </a-radio>
-          </a-radio-group>
+      <a-form-model ref="Form" :model="FormData" :rules="rules">
+        <a-form-model-item prop="open_time">
+          <a-time-picker
+            :allowClear="false"
+            v-model="FormData.open_time"
+            :placeholder="$t('tips.selectTime')"
+            style="width: 100%"
+            format="HH:mm"
+            valueFormat="HHmm"
+          />
         </a-form-model-item>
-        <a-form-model-item :label="$t('firewall.portBegin')" prop="port">
-          <a-input v-model="FormData.port" :maxLength="50"/>
-        </a-form-model-item>
-        <a-form-model-item :label="$t('firewall.mappingIp')" prop="mappingIp">
-          <a-input v-model="FormData.mappingIp" :maxLength="50"/>
-        </a-form-model-item>
-        <a-form-model-item
-          :label="$t('firewall.mappingPort')"
-          prop="mappingPort"
-        >
-          <a-input v-model="FormData.mappingPort" :maxLength="50"/>
-        </a-form-model-item>
-        <a-form-model-item :label="$t('firewall.remark')" prop="remark">
-          <a-input v-model="FormData.remark" type="textarea" :maxLength="80" />
+        <br />
+        <a-form-model-item prop="week_timeArr">
+          <a-checkbox-group
+            v-model="FormData.week_timeArr"
+            :options="plainOptions"
+          />
         </a-form-model-item>
       </a-form-model>
     </a-modal>
@@ -67,52 +60,48 @@
       :data-source="data"
       bordered
       :pagination="{ pageSize: 5 }"
-      v-show="!isBradge_Relay"
     >
-      <!-- 开关 -->
-      <template slot="enableRule" slot-scope="text, record">
+      <!-- 状态 -->
+      <template slot="timing_switch" slot-scope="text, record">
         <a-switch
           size="small"
-          v-model="record.enableRule"
+          v-model="record.timing_switch"
           @change="switchChange"
         />
       </template>
-      <!-- 版本 -->
-      <template slot="protocol" slot-scope="text, record">
+      <!-- 星期 -->
+      <template slot="week_timeArr" slot-scope="text, record">
         <div>
-          <a-select
-            :value="text"
-            size="small"
+          <a-checkbox-group
+            :default-value="text"
             v-if="record.editable"
-            style="margin: -5px"
-            @change="(value) => handleChange(value, record.key, 'protocol')"
-          >
-            <a-select-option value="all">all</a-select-option>
-            <a-select-option value="tcp">tcp</a-select-option>
-            <a-select-option value="udp">udp</a-select-option>
-          </a-select>
+            :options="plainOptions"
+            @change="(e) => handleChange(e, record.key, 'week_timeArr')"
+          />
           <span v-else>
-            {{ text }}
+            <a-tag :color="themeColor" v-for="(item, i) in text" :key="i">{{
+              plainOptions[item].label
+            }}</a-tag>
           </span>
         </div>
       </template>
-      <template
-        v-for="col in ['port', 'mappingIp', 'mappingPort', 'remark']"
-        :slot="col"
-        slot-scope="text, record"
-      >
-        <a-input
-          :key="col"
-          :maxLength="50"
-          v-if="record.editable"
-          style="margin: -5px 0"
-          :value="text"
-          size="small"
-          @change="(e) => handleChange(e.target.value, record.key, col)"
-        />
-        <span :key="col" v-else>
-          {{ text }}
-        </span>
+      <!-- 时间 -->
+      <template slot="open_time" slot-scope="text, record">
+        <div>
+          <a-time-picker
+            :allowClear="false"
+            style="margin: -5px 0; width: 80px"
+            :value="text"
+            size="small"
+            v-if="record.editable"
+            format="HH:mm"
+            valueFormat="HHmm"
+            @change="(e) => handleChange(e, record.key, 'open_time')"
+          />
+          <span v-else>
+            {{ `${text.substring(0, 2)} : ${text.substring(2, 4)}` }}
+          </span>
+        </div>
       </template>
       <!-- 操作 -->
       <template slot="operation" slot-scope="text, record">
@@ -141,88 +130,140 @@
         </div>
       </template>
     </a-table>
-    <!-- 桥接中继模式 -->
-    <emptyBradgeRelay />
   </div>
 </template>
 <script>
-import store from "../../store";
+import moment from 'moment';
+import { mapActions, mapState, mapGetters } from "vuex";
 import headerInfo from "../../components/headerInfo.vue";
-import emptyBradgeRelay from "../../components/empty_BradgeRelay.vue";
-import { columns } from "./filter.js";
 import { Validate } from "../../config/formValidate.js";
+import { i18n } from "../../i18n";
+const columns = [
+  {
+    title: i18n.t('manage.status'),
+    dataIndex: "timing_switch",
+    width: 70,
+    className: "column-center-th column-center-td",
+    scopedSlots: { customRender: "timing_switch" },
+  },
+  {
+    title: i18n.t('manage.RestartTime'),
+    colSpan: 2,
+    dataIndex: "week_timeArr",
+    scopedSlots: { customRender: "week_timeArr" },
+  },
+  {
+    title: "",
+    dataIndex: "open_time",
+    ellipsis: true,
+    colSpan: 0,
+    width: 110,
+    className: "column-center-td",
+    scopedSlots: { customRender: "open_time" },
+  },
+  {
+    title: i18n.t("route.operation"),
+    width: 110,
+    className: "column-center-th column-center-td",
+    dataIndex: "operation",
+    scopedSlots: { customRender: "operation" },
+  },
+];
+const plainOptions = [
+  { label: i18n.t('manage.week0'), value: "0" },
+  { label: i18n.t('manage.week1'), value: "1" },
+  { label: i18n.t('manage.week2'), value: "2" },
+  { label: i18n.t('manage.week3'), value: "3" },
+  { label: i18n.t('manage.week4'), value: "4" },
+  { label: i18n.t('manage.week5'), value: "5" },
+  { label: i18n.t('manage.week6'), value: "6" },
+];
 export default {
   components: {
     headerInfo,
-    emptyBradgeRelay
-  },
-  computed: {
-    isBradge_Relay: () => store.getters["sysStatus/isBradge_Relay"],
   },
   data() {
     return {
+      plainOptions,
       Validate,
       data: [], //最终渲染到表单的数据
       cacheData: [], //表单缓存数据
-      columns: columns.portMapping,
+      columns,
       editingKey: "",
       visible: false, //控制添加框显示隐藏
+      systime:"",
       FormData: {
-        protocol: "all",
-        port: "",
-        mappingIp: "",
-        mappingPort: "",
-        remark: "",
+        open_time: "0800",
+        week_timeArr: ['0'],
       },
       rules: {
-        port: [{ validator: Validate.checkPort }],
-        mappingIp: [{ validator: Validate.checkIP }],
-        mappingPort: [{ validator: Validate.checkPort }],
+        open_time: [{ validator: Validate.checkNull }],
+        week_timeArr: [
+          {
+            type: "array",
+            required: true,
+            message: i18n.t("tips.empty")
+          },
+        ],
       },
     };
   },
+  computed: {
+    ...mapState("sysStatus", {
+      themeColor: (state) => state.themeColor,
+    }),
+  },
   mounted() {
+    clearInterval(window.addTimeInterval)
     this.getData();
+    this.getTime();
+  },
+  beforeDestroy() {
+    clearInterval(window.addTimeInterval)
   },
   methods: {
+    async getTime(){
+      let res = await this.$axiosRequest_get({
+        cmd: this.$CMD.SET_DATETIME,
+      });
+      this.systime = moment(res.systime, 'YYYY-MM-DD HH:mm:ss').format("YYYY-MM-DD dddd HH:mm:ss");
+      this.addTime(res.systime)
+    },
+    addTime(systime){
+      let i = 0;
+      window.addTimeInterval = setInterval(()=>{
+        this.systime = moment(systime, 'YYYY-MM-DD HH:mm:ss').add(++i, 's').format("YYYY-MM-DD dddd HH:mm:ss");
+      },1000)
+    },
     async getData() {
       let res = await this.$axiosRequest_get({
-        cmd: this.$CMD.OTHER_FILTER,
-        getfun: true,
+        cmd: this.$CMD.TIMERESTART,
       });
-      if ("datas" in res) {
-        for (let i = 0; i < res.datas.length; i++) {
-          res.datas[i].key = i;
+      if ("data" in res) {
+        for (let i = 0; i < res.data.length; i++) {
+          res.data[i].key = i;
+          res.data[i].timing_switch = res.data[i].timing_switch == "1";
+          res.data[i].week_timeArr = res.data[i].week_time.split("");
         }
-        this.data = res.datas;
+        this.data = res.data;
         this.cacheData = this.data.map((item) => ({ ...item }));
       }
     },
     postData() {
-      let datas = JSON.parse(JSON.stringify(this.data));
-      for (let i in datas) {
-        datas[i].mappingIpPort = `${datas[i].mappingIp}:${datas[i].mappingPort}`
-        delete datas[i].key;
+      let data = JSON.parse(JSON.stringify(this.data));
+      for (let i in data) {
+        data[i].timing_switch = data[i].timing_switch ? "1" : "0";
+        data[i].week_time = data[i].week_timeArr.join("")
+        delete data[i].key;
+        delete data[i].week_timeArr;
       }
       this.$axiosRequest_post({
-        cmd: this.$CMD.OTHER_FILTER,
-        success: true,
-        datas,
+        cmd: this.$CMD.TIMERESTART,
+        data,
       }).then((res) => {
-        if (res.success) {
-          this.apply();
-        } else {
-          this.$loading_tool({ loading: false });
-          this.$message.error(this.$t("tips.setFail"));
-        }
-      });
-    },
-    // 应用
-    apply() {
-      this.$axiosRequest_post({ cmd: this.$CMD.APPLY_FILTER }).then((res) => {
         this.$loading_tool({ loading: false });
+        this.getData();
         if (res.success) {
-          this.getData();
           this.$message.success(this.$t("tips.setSuccess"));
         } else {
           this.$message.error(this.$t("tips.setFail"));
@@ -260,7 +301,7 @@ export default {
       this.data = dataSource.filter((item) => item.key !== key);
       this.postData();
     },
-    // 清空规则
+    // 清空所有
     deleteAll() {
       const _this = this;
       this.$confirm({
@@ -276,45 +317,20 @@ export default {
         },
       });
     },
-    check(target) {
-      let error_ip = false,
-        error_portBegin = false,
-        error_portEnd = false;
-      Validate.checkPort("", target.port, (e) => {
-        error_portBegin = e != undefined;
-      });
-      Validate.checkPort("", target.mappingPort, (e) => {
-        error_portEnd = e != undefined;
-      });
-      Validate.checkIP("", target.mappingIp, (e) => {
-        error_ip = e != undefined;
-      });
-      return error_ip || error_portBegin || error_portEnd || target.port == target.mappingPort;
-    },
     // 保存修改
     save(key) {
       const newData = [...this.data];
       const newCacheData = [...this.cacheData];
       const target = newData.filter((item) => key === item.key)[0]; //修改后
       const targetCache = newCacheData.filter((item) => key === item.key)[0]; //修改前
-      if (this.check(target)) {
-        this.$message.error(this.$t("tips.formatError"));
-        return;
-      }
-      let tmp = newCacheData.filter(
-        (item) =>
-          item.protocol == target.protocol &&
-          item.port == target.port &&
-          item.mappingPort == target.mappingPort &&
-          item.mappingIp == target.mappingIp
+      let tmp = newCacheData.filter((item) => 
+        item.week_timeArr.join("") == target.week_timeArr.join("") && item.open_time == target.open_time
       );
-      if (
-        tmp.length > 0 &&
-        (target.protocol != targetCache.protocol ||
-          target.port != targetCache.port ||
-          target.mappingIp != targetCache.mappingIp ||
-          target.mappingPort != targetCache.mappingPort)
-      ) {
+      if(target.week_timeArr.length==0){
+        this.$message.error(this.$t("tips.week_empty"));
+        return
+      }
+      if (tmp.length > 0 && (target.week_timeArr.join("") != targetCache.week_timeArr.join("") || target.open_time != targetCache.open_time)) {
         this.$message.error(this.$t("tips.repeated"));
         return;
       }
@@ -349,19 +365,16 @@ export default {
       this.$refs.Form.validate((valid) => {
         if (valid) {
           const dataSource = [...this.data];
-          let tmp = dataSource.filter(
-            (item) =>
-              item.protocol == this.FormData.protocol &&
-              item.port == this.FormData.port &&
-              item.mappingPort == this.FormData.mappingPort &&
-              item.mappingIp == this.FormData.mappingIp
+          let tmp = dataSource.filter((item) =>
+              item.week_timeArr.join("") == this.FormData.week_timeArr.join("") &&
+              item.open_time == this.FormData.open_time
           );
           if (tmp.length > 0) {
             this.$message.error(this.$t("tips.repeated"));
             return;
           }
           this.FormData.key = Number(this.data.length);
-          this.FormData.enableRule = true;
+          this.FormData.timing_switch = true;
           this.visible = false;
           this.$loading_tool({ loading: true });
           this.data.push(this.FormData);

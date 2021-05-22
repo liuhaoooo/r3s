@@ -25,27 +25,27 @@
         prop="mtu_ip"
         v-if="Form.protocol_type == 'IPv4'"
       >
-        <a-input v-model="Form.mtu_ip" />
+        <a-input v-model="Form.mtu_ip" :maxLength="50"/>
       </a-form-model-item>
       <a-form-model-item label="MTU[1280-1500]" prop="mtu_ip" v-else>
-        <a-input v-model="Form.mtu_ip" />
+        <a-input v-model="Form.mtu_ip" :maxLength="50"/>
       </a-form-model-item>
       <!-- ipv4 ip -->
       <div v-if="Form.protocol_type != 'IPv6' && Form.wan_type == 'Static'">
         <a-form-model-item label="IP 地址" prop="ipadd_ip">
-          <a-input v-model="Form.ipadd_ip" />
+          <a-input v-model="Form.ipadd_ip" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item label="子网掩码" prop="submask_ip">
-          <a-input v-model="Form.submask_ip" />
+          <a-input v-model="Form.submask_ip" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item label="缺省网关" prop="gateway_ip">
-          <a-input v-model="Form.gateway_ip" />
+          <a-input v-model="Form.gateway_ip" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item label="首选DNS服务器" prop="first_dns">
-          <a-input v-model="Form.first_dns" />
+          <a-input v-model="Form.first_dns" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item label="备用DNS服务器" prop="sec_dns">
-          <a-input v-model="Form.sec_dns" />
+          <a-input v-model="Form.sec_dns" :maxLength="50"/>
         </a-form-model-item>
       </div>
       <!-- IPv6 ip -->
@@ -70,7 +70,7 @@
           prop="IPv6_gateway"
           v-if="Form.IPv6_wan_type != 'SLAAC'"
         >
-          <a-input v-model="Form.IPv6_gateway" />
+          <a-input v-model="Form.IPv6_gateway" :maxLength="50"/>
         </a-form-model-item>
         <div v-if="Form.IPv6_wan_type == 'Static'">
           <!-- <a-form-model-item label="IPv6地址" prop="IPv6_add">
@@ -85,13 +85,13 @@
             />
           </a-form-model-item> -->
           <a-form-model-item label="IPv6地址" prop="IPv6_add">
-            <a-input v-model="Form.IPv6_add" />
+            <a-input v-model="Form.IPv6_add" :maxLength="50"/>
           </a-form-model-item>
           <a-form-model-item label="IPv6首选DNS服务器" prop="IPv6_first_dns">
-            <a-input v-model="Form.IPv6_first_dns" />
+            <a-input v-model="Form.IPv6_first_dns" :maxLength="50"/>
           </a-form-model-item>
           <a-form-model-item label="IPv6备用DNS服务器" prop="IPv6_sec_dns">
-            <a-input v-model="Form.IPv6_sec_dns" />
+            <a-input v-model="Form.IPv6_sec_dns" :maxLength="50"/>
           </a-form-model-item>
         </div>
       </div>
@@ -113,20 +113,20 @@
           </a-form-model-item>
           <div v-if="Form.prefix == 'Manual'">
             <a-form-model-item label="前缀地址" prop="prefix_add">
-              <a-input v-model="Form.prefix_add" />
+              <a-input v-model="Form.prefix_add" :maxLength="50"/>
             </a-form-model-item>
-            <a-form-model-item
+            <!-- <a-form-model-item
               label="首选寿命[600-4294967295]"
               prop="preferred_life"
             >
-              <a-input v-model="Form.preferred_life" />
+              <a-input v-model="Form.preferred_life" :maxLength="50"/>
             </a-form-model-item>
             <a-form-model-item
               label="有效寿命[600-4294967295]"
               prop="Effective_life"
             >
-              <a-input v-model="Form.Effective_life" />
-            </a-form-model-item>
+              <a-input v-model="Form.Effective_life" :maxLength="50"/>
+            </a-form-model-item> -->
           </div>
         </div>
       </div>
@@ -178,8 +178,8 @@ export default {
         PD_enable: false, //PD使能
         prefix: "Auto", //前缀模式
         prefix_add: "", //前缀地址
-        preferred_life: "", //首选寿命
-        Effective_life: "", //有效寿命
+        // preferred_life: "", //首选寿命
+        // Effective_life: "", //有效寿命
       },
     };
   },
@@ -205,24 +205,23 @@ export default {
       return {
         mtu_ip: [
           {
-            validator: this.Form.protocol_type == "IPv4" ? mtu_ip1 : mtu_ip2,
-            trigger: "change",
+            validator: this.Form.protocol_type == "IPv4" ? mtu_ip1 : mtu_ip2
           },
         ],
-        ipadd_ip: [{ validator: Validate.checkIP, trigger: "change" }],
-        submask_ip: [{ validator: Validate.checkNetMask, trigger: "change" }],
-        gateway_ip: [{ validator: Validate.checkIP, trigger: "change" }],
-        first_dns: [{ validator: Validate.checkIP, trigger: "change" }],
-        sec_dns: [{ validator: Validate.checkIP, trigger: "change" }],
-        IPv6_add: [{ validator: Validate.checkIPv6_prefix, trigger: "change" }],
-        IPv6_gateway: [{ validator: Validate.checkIPv6, trigger: "change" }],
-        IPv6_first_dns: [{ validator: Validate.checkIPv6, trigger: "change" }],
-        IPv6_sec_dns: [{ validator: Validate.checkIPv6, trigger: "change" }],
+        ipadd_ip: [{ validator: Validate.checkIP }],
+        submask_ip: [{ validator: Validate.checkNetMask }],
+        gateway_ip: [{ validator: Validate.checkIP }],
+        first_dns: [{ validator: Validate.checkIP }],
+        sec_dns: [{ validator: Validate.checkIP }],
+        IPv6_add: [{ validator: Validate.checkIPv6_prefix }],
+        IPv6_gateway: [{ validator: Validate.checkIPv6 }],
+        IPv6_first_dns: [{ validator: Validate.checkIPv6 }],
+        IPv6_sec_dns: [{ validator: Validate.checkIPv6 }],
         prefix_add: [
-          { validator: Validate.checkIPv6_prefix, trigger: "change" },
+          { validator: Validate.checkIPv6_prefix },
         ],
-        preferred_life: [{ validator: check_preferred, trigger: "change" }],
-        Effective_life: [{ validator: check_Effective, trigger: "change" }],
+        // preferred_life: [{ validator: check_preferred }],
+        // Effective_life: [{ validator: check_Effective }],
       };
     },
     IPv6_wan_type_disabled() {

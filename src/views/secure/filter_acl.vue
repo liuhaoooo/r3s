@@ -57,10 +57,10 @@
           </a-radio-group>
         </a-form-model-item>
         <a-form-model-item :label="$t('firewall.srcIp')" prop="srcIp">
-          <a-input v-model="FormData.srcIp" />
+          <a-input v-model="FormData.srcIp" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('firewall.destIp')" prop="destIp">
-          <a-input v-model="FormData.destIp" />
+          <a-input v-model="FormData.destIp" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('firewall.remark')" prop="remark">
           <a-input v-model="FormData.remark" type="textarea" :maxLength="80" />
@@ -212,8 +212,8 @@ export default {
         remark: "",
       },
       // rules: {
-      //   srcIp: [{ validator: Validate.checkIP, trigger: "change" }],
-      //   destIp: [{ validator: Validate.checkIP, trigger: "change" }],
+      //   srcIp: [{ validator: Validate.checkIP }],
+      //   destIp: [{ validator: Validate.checkIP }],
       // },
     };
   },
@@ -225,8 +225,7 @@ export default {
             validator:
               this.FormData.ippro == "IPV4"
                 ? Validate.checkIP
-                : Validate.checkIPv6,
-            trigger: "change",
+                : Validate.checkIPv6
           },
         ],
         destIp: [
@@ -234,8 +233,7 @@ export default {
             validator:
               this.FormData.ippro == "IPV4"
                 ? Validate.checkIP
-                : Validate.checkIPv6,
-            trigger: "change",
+                : Validate.checkIPv6
           },
         ],
       };
@@ -261,7 +259,7 @@ export default {
       }
     },
     postData() {
-      let datas = [...this.data];
+      let datas = JSON.parse(JSON.stringify(this.data));
       for (let i in datas) {
         datas[i].enableLink = datas[i].enableLink == "1";
         delete datas[i].key;

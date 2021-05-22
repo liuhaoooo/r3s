@@ -2,15 +2,15 @@
   <div class="my_content">
     <a-row :gutter="16">
       <a-col :span="12">
-        <a-card hoverable size="small" :title="'2.4G Wi-Fi（'+authentication[wifiInfo_24.authenticationType]+'）'">
+        <a-card hoverable size="small" :title="title(wifiInfo_24.authenticationType,'2.4')">
           <a slot="extra" @click="$router.push({name:'Wifi24g'})">详情</a>
           <a-statistic
             :title="`SSID广播：${wifiInfo_24.broadcast=='1'?'开启':'关闭'}`"
-            :value="wifiInfo_24.wifiOpen=='1'?networkInfo.wifiName_4g:'已关闭'"
+            value=" "
             :value-style="{ color: wifiInfo_24.wifiOpen=='1'?themeColor:'#ffa0a2' }"
           >
             <template #prefix>
-              <a-icon type="wifi" />
+              <a-icon type="wifi" />{{wifiInfo_24.wifiOpen=='1'?Base64.decode(wifiInfo_24.ssid):'已关闭'}}
             </template>
           </a-statistic>
           <div v-show="!showPwd24">
@@ -24,15 +24,15 @@
         </a-card>
       </a-col>
       <a-col :span="12">
-        <a-card hoverable size="small" :title="'5G Wi-Fi（'+authentication[wifiInfo_5.authenticationType]+'）'">
+        <a-card hoverable size="small" :title="title(wifiInfo_5.authenticationType,'5')">
           <a slot="extra" @click="$router.push({name:'Wifi5g'})">详情</a>
           <a-statistic
             :title="`SSID广播：${wifiInfo_5.broadcast=='1'?'开启':'关闭'}`"
-            :value="wifiInfo_5.wifiOpen=='1'?networkInfo.wifiName_5g:'已关闭'"
+            value=" "
             :value-style="{ color: wifiInfo_5.wifiOpen=='1'?themeColor:'#ffa0a2' }"
           >
             <template #prefix>
-              <a-icon type="wifi" />
+              <a-icon type="wifi" />{{wifiInfo_5.wifiOpen=='1'?Base64.decode(wifiInfo_5.ssid):'已关闭'}}
             </template>
           </a-statistic>
           <div v-show="!showPwd5">
@@ -55,6 +55,7 @@
   </div>
 </template>
 <script>
+import { Base64 } from "js-base64";
 import store from "../../store";
 import { mapActions, mapState, mapGetters } from "vuex";
 import deviceList from "./deviceList.vue";
@@ -71,16 +72,28 @@ export default {
     return{
       showPwd24:false,
       showPwd5:false,
-      authentication
+      Base64
     }
   },
   computed: {
     ...mapState("sysStatus", {
-      networkInfo: (state) => state.networkInfo,
       wifiInfo_24: (state) => state.wifiInfo_24,
       wifiInfo_5: (state) => state.wifiInfo_5,
       themeColor: (state) => state.themeColor,
-    })
+    }),
+    is5G: () => store.getters["sysStatus/is5G"],
+    title(){
+      return function(value, type){
+        if(this.is5G){
+          return type + 'G Wi-Fi 5G优选（'+authentication[value]+'）'
+        }else{
+          return type + 'G Wi-Fi（'+authentication[value]+'）'
+        }
+      }
+    },
   },
+  mounted(){
+    store.dispatch("sysStatus/getWifiInfo"); //wifi信息
+  }
 };
 </script>

@@ -6,13 +6,13 @@
     />
     <a-form-model ref="Form" layout="inline" :model="Form" :rules="rules">
       <a-form-model-item :label="$t('diagnosis.loop')">
-        <a-switch v-model="loop" :disabled="loading" />
+        <a-switch v-model="loop" :disabled="loading" @change="loopChange"/>
       </a-form-model-item>
       <a-form-model-item :label="$t('diagnosis.num')" prop="pingTimes">
-        <a-input v-model="Form.pingTimes" :disabled="loop || loading" />
+        <a-input v-model="Form.pingTimes" :disabled="loop || loading" :maxLength="50" />
       </a-form-model-item>
       <a-form-model-item :label="$t('diagnosis.ipurl')" prop="url">
-        <a-input v-model="Form.url" :disabled="loading" />
+        <a-input v-model="Form.url" :disabled="loading"  :maxLength="50"/>
       </a-form-model-item>
       <a-form-model-item>
         <a-button type="primary" v-show="loading" @click="stopClick">{{$t('diagnosis.stop')}}</a-button>
@@ -24,7 +24,10 @@
 </template>
 
 <script>
+
 import headerInfo from "../../components/headerInfo.vue";
+// const headerInfo = () => import('../../components/headerInfo.vue')
+// const headerInfo = resolve => require(['../../components/headerInfo.vue'], resolve);
 import { Validate } from "../../config/formValidate.js";
 const pingTimes = (rule, value, callback) => {
   Validate.checkRange(value, [1, 999], callback);
@@ -45,8 +48,8 @@ export default {
         url: "192.168.0.1",
       },
       rules: {
-        pingTimes: [{ validator: pingTimes, trigger: "change" }],
-        url: [{ validator: Validate.checkNull, trigger: "change" }],
+        pingTimes: [{ validator: pingTimes }],
+        url: [{ validator: Validate.checkNull }],
       },
     };
   },
@@ -74,7 +77,8 @@ export default {
         subcmd: this.$CMD.NETWORK_TOOLS,
       });
       this.pingInfo = res;
-      if(res.indexOf('bad address') != -1){
+      if(res.indexOf('bad address') != -1 || res.indexOf('Network unreachable') != -1){
+        this.loading = false;
         this.stop = true
       }
       this.$refs.textarea.scrollTop = this.$refs.textarea.scrollHeight;
@@ -100,6 +104,9 @@ export default {
           return false;
         }
       });
+    },
+    loopChange(e){
+      e && this.$refs['Form'].clearValidate()
     },
   },
 };

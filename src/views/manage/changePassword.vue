@@ -15,14 +15,14 @@
           <a-select-option value="2">{{$t('manage.adminAcc')}}</a-select-option>
         </a-select>
       </a-form-model-item>
-      <a-form-model-item :label="$t('manage.oldPass')" prop="old_passwd" v-else>
-        <a-input-password v-model="Form.old_passwd" />
+      <a-form-model-item :label="$t('manage.oldPass')" prop="old_passwd" v-if="account_level == '3'">
+        <a-input-password v-model="Form.old_passwd" :maxLength="32"/>
       </a-form-model-item>
       <a-form-model-item :label="$t('manage.newPass')" prop="newPasswd">
-        <a-input-password v-model="Form.newPasswd" />
+        <a-input-password v-model="Form.newPasswd" :maxLength="32"/>
       </a-form-model-item>
       <a-form-model-item :label="$t('manage.confirmPass')" prop="confirm_passwd">
-        <a-input-password v-model="Form.confirm_passwd" />
+        <a-input-password v-model="Form.confirm_passwd" :maxLength="32"/>
       </a-form-model-item>
       <a-form-model-item :wrapper-col="{ span: 10, offset: 15 }">
         <a-button type="primary" @click="submitForm('Form')">{{$t("tips.ok")}}</a-button>
@@ -56,9 +56,9 @@ export default {
         confirm_passwd: "",
       },
       rules: {
-        old_passwd: [{ validator: Validate.checkNull, trigger: "change" }],
-        newPasswd: [{ validator: Validate.checkSysPass, trigger: "change" }],
-        confirm_passwd: [{ validator: validatePass, trigger: "change" }],
+        old_passwd: [{ validator: Validate.checkNull }],
+        newPasswd: [{ validator: Validate.checkSysPass }],
+        confirm_passwd: [{ validator: validatePass }],
       },
     };
   },
@@ -96,8 +96,12 @@ export default {
       }
       this.$axiosRequest_post(json).then((res) => {
         this.$loading_tool({ loading: false });
+        if(res.message=='passwd error'){
+          this.$message.error(this.$t("tips.oldPwdErr"));
+          return
+        }
         if (res.success) {
-          this.account_level != "1" && this.$router.push({ name: "Login" });
+          this.account_level == "3" && this.$router.push({ name: "Login" });
           this.$message.success(this.$t("tips.setSuccess"));
         } else {
           this.$message.error(this.$t("tips.setFail"));

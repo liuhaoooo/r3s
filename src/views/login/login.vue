@@ -12,7 +12,7 @@
       <a style="color:#41a5e0">手机客户端</a>
     </a-popover>
     <div class="login-content">
-      <label for>欢迎使用中国移动路由器 R3s-4</label>
+      <label for>欢迎使用中国移动路由器 {{deviceInfo.board_type || "RAX3000-Q"}}</label>
       <span>此密码为登录本设备的配置页面</span>
       <a-form :form="form">
         <a-form-item
@@ -23,6 +23,7 @@
         >
           <a-input
             class="a-input"
+            :maxLength="32"
             v-decorator="[
               'username',
               { rules: [{ required: false, message: $t('login.inputusername') }] },
@@ -39,6 +40,7 @@
         >
           <a-input
             class="a-input"
+            :maxLength="32"
             v-decorator="[
               'password',
               { rules: [{ required: false, message: $t('login.inputpassword') }] },
@@ -73,10 +75,12 @@
       width="450px"
     >
       <div class="modal-content">
-        <div></div>
-        <span
-          >默认密码为admin。依照图示方法，可以将【R3s-4路由器】恢复出厂设置，恢复出厂设置后您可以重新设置密码，但同时您的数据会被清除，请谨慎操作。</span
-        >
+        <!-- <div></div> -->
+        <br>
+        <span>
+          忘记密码，可以将路由器恢复出厂设置，恢复出厂设置后密码将重置，查看路由器背面的铭牌获取密码，但同时您的数据会被清除，请谨慎操作。
+        </span>
+        <br>
         <a-button
           type="primary"
           @click="() => (modalVisible = false)"
@@ -111,6 +115,9 @@ export default {
       times: 0,
       qrcodeShow: true,
     };
+  },
+  computed:{
+     deviceInfo: () => store.getters["sysStatus/deviceInfo"]
   },
   mounted() {
     sessionStorage.clear()
@@ -157,7 +164,8 @@ export default {
               } else {
                 sessionStorage.setItem("sessionId", rsaEnc_tool(res.sessionId));
                 this.loading = false;
-                this.$router.push({ name: "Status" });
+                store.commit("sysStatus/setIsMore",false)
+                this.$router.push({ name: "Simple_home" });
                 this.$message.success("登录成功", 1);
               }
             })

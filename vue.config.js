@@ -1,4 +1,3 @@
-// const CompressionPlugin = require('compression-webpack-plugin');
 module.exports = {
 	lintOnSave: false,
 	publicPath: './',
@@ -12,7 +11,7 @@ module.exports = {
 		https: false,
 		proxy: {
 			'/cgi-bin': {
-				target: 'http://192.168.0.1',
+				target: 'http://192.168.10.1',
 				ws: true,
 				changOrigin: true,
 				pathRewrite: {
@@ -38,17 +37,4 @@ module.exports = {
 			},
 		},
 	},
-	// configureWebpack: config => {//打包时对js/css文件进行压缩
-	// 	if (process.env.NODE_ENV === 'production') {//生产环境
-	// 		config.plugins.push(
-	// 			new CompressionPlugin({
-	// 				filename: '[path].gz[query]',
-	// 				algorithm: 'gzip',//压缩算法
-	// 				test: /\.js$|\.css$|\.html$/,//匹配文件
-	// 				threshold: 10240,//压缩超过此大小的文件,以字节为单位
-	// 				minRatio: 0.8,//压缩比
-	// 			})
-	// 		)
-	// 	}
-	// }
 };

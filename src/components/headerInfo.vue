@@ -5,7 +5,8 @@
       <span>{{ spanText }}</span>
     </div>
     <div class="headerInfo-R">
-      <a target="_blank" @click="toHelp">{{ $t("tips.moreHelp") }}</a>
+      <a target="_blank" @click="toHelp">{{ linkTo === "" ? $t("tips.moreHelp") : '更多设置' }}</a>
+      <a-icon type="arrow-right" class="mytext-color" v-show="linkTo !== ''"/>
     </div>
   </div>
 </template>
@@ -18,15 +19,20 @@ export default {
   props: {
     labelText: {
       type: String,
+      default: ""
     },
     spanText: {
       type: String,
+      default: ""
     },
+    linkTo: {
+      type: String,
+      default: ""
+    }
   },
   methods: {
-    //跳转到help
     toHelp() {
-      this.$router.push({ name: "Help" });
+      this.$router.push({ name: this.linkTo || "Help" });
     },
   },
 };

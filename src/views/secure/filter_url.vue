@@ -40,7 +40,7 @@
       <a-form-model
         ref="Form"
         :model="FormData"
-        :rules="{ url: [{ validator: Validate.checkUrl, trigger: 'change' }] }"
+        :rules="{ url: [{ validator: Validate.checkUrl }] }"
         :label-col="{ span: 8 }"
         :wrapper-col="{ span: 12 }"
       >
@@ -51,7 +51,7 @@
           </a-radio-group>
         </a-form-model-item>
         <a-form-model-item :label="$t('firewall.url')" prop="url">
-          <a-input v-model="FormData.url" />
+          <a-input v-model="FormData.url" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('firewall.remark')" prop="remark">
           <a-input v-model="FormData.remark" type="textarea" :maxLength="80" />
@@ -251,7 +251,7 @@ export default {
       }
     },
     postData() {
-      let datas = [...this.data];
+      let datas = JSON.parse(JSON.stringify(this.data));
       for (let i in datas) {
         delete datas[i].key;
       }

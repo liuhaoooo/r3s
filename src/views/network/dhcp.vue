@@ -13,25 +13,25 @@
         :wrapper-col="{ span: 10 }"
       >
         <a-form-model-item :label="$t('dhcp.lanip')" prop="lanIp">
-          <a-input v-model="Form.lanIp" @change="inputChange" />
+          <a-input v-model="Form.lanIp" @change="inputChange" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('dhcp.netMask')" prop="netMask">
-          <a-input v-model="Form.netMask" />
+          <a-input v-model="Form.netMask" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('dhcp.dhcpServer')">
           <a-switch v-model="Form.dhcpServer" />
         </a-form-model-item>
         <div v-if="Form.dhcpServer">
           <a-form-model-item :label="$t('dhcp.main_dns')" prop="main_dns">
-            <a-input v-model="Form.main_dns" />
+            <a-input v-model="Form.main_dns" :maxLength="50"/>
           </a-form-model-item>
           <a-form-model-item :label="$t('dhcp.vice_dns')" prop="vice_dns">
-            <a-input v-model="Form.vice_dns" />
+            <a-input v-model="Form.vice_dns" :maxLength="50"/>
           </a-form-model-item>
           <a-form-model-item :label="$t('dhcp.ipBeginEnd')" prop="ipBegin">
-            <a-input v-model="Form.ipBegin" style="width: 161px" />
-            <span> - </span>
-            <a-input v-model="Form.ipEnd" style="width: 161px" />
+            <a-input v-model="Form.ipBegin" style="width: 156px" :maxLength="50"/>
+            <span> --- </span>
+            <a-input v-model="Form.ipEnd" style="width: 156px" :maxLength="50" @change="ipEndChange"/>
           </a-form-model-item>
           <a-form-model-item :label="$t('dhcp.expireTime')">
             <a-select v-model="Form.expireTime">
@@ -60,9 +60,9 @@
 import headerInfo from "../../components/headerInfo.vue";
 import { Validate } from "../../config/formValidate.js";
 const expireTimeOption = [
-  { name: "1小时", value: "3600" },
-  { name: "1天", value: "86400" },
-  { name: "1周", value: "604800" },
+  { name: "10小时", value: "10h" },
+  { name: "1天", value: "24h" },
+  { name: "1周", value: "168h" },
 ];
 const reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
 export default {
@@ -72,6 +72,7 @@ export default {
   data() {
     //地址池校验
     const checkIpBeginEnd = (rule, value, callback) => {
+      console.log(this.Form.ipBegin)
       if (this.Form.ipBegin === "" || this.Form.ipEnd === "") {
         return callback(new Error(this.$t('tips.empty')));
       } else if (!reg.test(this.Form.ipBegin) || !reg.test(this.Form.ipEnd)) {
@@ -80,17 +81,21 @@ export default {
       let lanIPArr = this.Form.lanIp.split("."),
         ipBeginIPArr = this.Form.ipBegin.split("."),
         ipEndArr = this.Form.ipEnd.split("."),
+        addr2 = value.split("."),
+        mask = this.Form.netMask.split("."),
         newLanIP = Number(lanIPArr[3]),
         newIpBegin = Number(ipBeginIPArr[3]),
         newIpEnd = Number(ipEndArr[3]),
-        lanIPStr = lanIPArr[0] + lanIPArr[1] + lanIPArr[2],
-        ipBeginStr = ipBeginIPArr[0] + ipBeginIPArr[1] + ipBeginIPArr[2],
-        ipEndStr = ipEndArr[0] + ipEndArr[1] + ipEndArr[2];
+        res1 = [],
+        res2 = [];
+      for (let i = 0, ilen = lanIPArr.length; i < ilen; i++) {
+        res1.push(parseInt(lanIPArr[i]) & parseInt(mask[i]));
+        res2.push(parseInt(addr2[i]) & parseInt(mask[i]));
+      }
       if (
         newIpBegin >= newIpEnd ||
         (newLanIP >= newIpBegin && newLanIP <= newIpEnd) ||
-        lanIPStr != ipBeginStr ||
-        lanIPStr != ipEndStr
+        res1.join(".") != res2.join(".")
       ) {
         callback(new Error(this.$t('tips.rangeError')));
       } else {
@@ -100,7 +105,7 @@ export default {
     return {
       Form: {
         dhcpServer: true,
-        expireTime: "3600",
+        expireTime: "24h",
         ipBegin: "",
         ipEnd: "",
         lanIp: "",
@@ -112,12 +117,12 @@ export default {
       expireTimeOption,
       //rules
       rules: {
-        lanIp: [{ validator: Validate.checkIP, trigger: "change" }],
-        netMask: [{ validator: Validate.checkNetMask, trigger: "change" }],
-        main_dns: [{ validator: Validate.checkIP, trigger: "change" }],
-        vice_dns: [{ validator: Validate.checkIP, trigger: "change" }],
-        ipBegin: [{ validator: checkIpBeginEnd, trigger: "change" }],
-        ipEnd: [{ validator: checkIpBeginEnd, trigger: "change" }],
+        lanIp: [{ validator: Validate.checkIP }],
+        netMask: [{ validator: Validate.checkNetMask }],
+        main_dns: [{ validator: Validate.checkIP }],
+        vice_dns: [{ validator: Validate.checkIP }],
+        ipBegin: [{ validator: checkIpBeginEnd }],
+        ipEnd: [{ validator: checkIpBeginEnd }],
       },
     };
   },
@@ -126,7 +131,10 @@ export default {
   },
   methods: {
     //lanip输入自动填充ip地址池
-    inputChange: function () {
+    inputChange() {
+      if(this.Form.ipBegin !== ''){//同时触发校验
+        this.$refs.Form.validate();
+      }
       if (reg.test(this.Form.lanIp)) {
         this.Form.ipBegin = this.lanIpChange(this.Form.ipBegin);
         this.Form.ipEnd = this.lanIpChange(this.Form.ipEnd);
@@ -135,7 +143,7 @@ export default {
         }
       }
     },
-    lanIpChange: function (value) {
+    lanIpChange(value) {
       let newIp = value.split("."),
         i = 0;
       while (i < 3) {
@@ -143,6 +151,11 @@ export default {
         i++;
       }
       return newIp.join(".");
+    },
+    ipEndChange(){
+      if(this.Form.ipBegin !== ''){//同时触发校验
+        this.$refs.Form.validate();
+      }
     },
     async getData() {
       let res = await this.$axiosRequest_get({ cmd: this.$CMD.NETWORK_CONFIG });

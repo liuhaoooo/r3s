@@ -3,18 +3,20 @@
     style="margin-top: 20px"
     :columns="columns"
     :data-source="data"
-    :pagination="{ pageSize: 5 }"
+    :pagination="{ pageSize: 999 }"
     bordered
+    :scroll="{ y: 300 }"
+    class="deviceList-table"
   >
     <template slot="accessMode" slot-scope="text">
       {{ accessModeArr[text] }}
     </template>
     <template slot="ipmac" slot-scope="text">
-      <span style="color: #16cdab">ip-</span>{{ text.ip }}
+      <span class="mytext-color">ip-</span>{{ text.ip }}
       <br />
-      <span style="color: #16cdab">mac-</span>{{ text.mac }}
+      <span class="mytext-color">mac-</span>{{ text.mac }}
     </template>
-    <template slot="speed" slot-scope="text">
+    <!-- <template slot="speed" slot-scope="text">
       <a-icon type="arrow-up" style="color: #16cdab" />{{
         speed_rate(text.upload_rate)
       }}
@@ -22,7 +24,7 @@
       <a-icon type="arrow-down" style="color: #16cdab" />{{
         speed_rate(text.download_rate)
       }}
-    </template>
+    </template> -->
     <template
       v-for="col in ['up_limit', 'dow_limit']"
       :slot="col"
@@ -31,6 +33,7 @@
       <div :key="col">
         <a-input
           v-if="record.editable"
+          :maxLength="50"
           style="margin: -5px 0"
           :value="text"
           @change="(e) => handleChange(e.target.value, record.key, col)"
@@ -55,9 +58,9 @@
         </span>
       </div>
     </template>
-    <template slot="ban_network" slot-scope="text, record">
+    <!-- <template slot="ban_network" slot-scope="text, record">
       <a-switch v-model="record.ban_network" @change="switchChange(record)" />
-    </template>
+    </template> -->
   </a-table>
 </template>
 
@@ -67,7 +70,7 @@ const columns = [
   {
     title: i18n.t('deviceList.name'),
     dataIndex: "name",
-    width: 110,
+    width: 150,
     ellipsis: true,
   },
   {
@@ -81,17 +84,17 @@ const columns = [
   {
     title: i18n.t('deviceList.ipmac'),
     dataIndex: "ipmac",
-    width: 150,
+    width: 130,
     ellipsis: true,
     scopedSlots: { customRender: "ipmac" },
   },
-  {
-    title: i18n.t('deviceList.speed'),
-    dataIndex: "speed",
-    width: 100,
-    ellipsis: true,
-    scopedSlots: { customRender: "speed" },
-  },
+  // {
+  //   title: i18n.t('deviceList.speed'),
+  //   dataIndex: "speed",
+  //   width: 100,
+  //   ellipsis: true,
+  //   scopedSlots: { customRender: "speed" },
+  // },
   {
     title: i18n.t('deviceList.up_limit'),
     dataIndex: "up_limit",
@@ -113,19 +116,25 @@ const columns = [
     className: "column-center-th column-center-td",
     scopedSlots: { customRender: "edit" },
   },
-  {
-    title: i18n.t('deviceList.ban_network'),
-    dataIndex: "ban_network",
-    width: 75,
-    className: "column-center-td",
-    scopedSlots: { customRender: "ban_network" },
-  },
+  // {
+  //   title: i18n.t('deviceList.ban_network'),
+  //   dataIndex: "ban_network",
+  //   width: 75,
+  //   className: "column-center-td",
+  //   scopedSlots: { customRender: "ban_network" },
+  // },
 ];
 const accessModeArr = {
-  0: "2.4G",
-  1: "5G",
-  2: i18n.t('deviceList.wired'),
-  3: "mesh",
+  "10": "2.4G",
+  "11": "2.4G",
+  "12": "2.4G",
+  "13": "2.4G",
+  "14": "5G",
+  "15": "5G",
+  "16": "5G",
+  "17": "5G",
+  "2": i18n.t('deviceList.wired'),
+  "3": "mesh",
 };
 export default {
   data() {
@@ -135,6 +144,7 @@ export default {
       columns,
       accessModeArr,
       editingKey: "",
+      isStop:false
     };
   },
   computed: {
@@ -155,6 +165,7 @@ export default {
   mounted() {
     clearTimeout(window.timeoutGetData);
     this.getData();
+    this.isStop = false
     this.intervalGetData();
   },
   beforeDestroy() {
@@ -171,6 +182,7 @@ export default {
       let res = await this.$axiosRequest_get({
         cmd: this.$CMD.TERMINAL_INFO,
       });
+      if(this.isStop) return
       if ("dataList" in res) {
         let datas = [...res.dataList];
         for (let i = 0; i < datas.length; i++) {
@@ -210,7 +222,8 @@ export default {
       }).then((res) => {
         this.$loading_tool({ loading: false });
         if (res.success) {
-          this.intervalGetData();
+          this.isStop = false
+          this.intervalGetData();//继续定时请求
           this.$message.success(this.$t("tips.setSuccess"));
         } else {
           this.$message.error(this.$t("tips.setFail"));
@@ -218,6 +231,7 @@ export default {
       });
     },
     switchChange(e) {
+      clearTimeout(window.timeoutGetData);//暂停定时请求
       this.postData();
     },
     handleChange(value, key, column) {
@@ -229,7 +243,8 @@ export default {
       }
     },
     edit(key) {
-      clearTimeout(window.timeoutGetData);
+      this.isStop = true
+      clearTimeout(window.timeoutGetData);//暂停定时请求
       const newData = [...this.data];
       const target = newData.filter((item) => key === item.key)[0];
       this.editingKey = key;
@@ -284,8 +299,16 @@ export default {
         delete target.editable;
         this.data = newData;
       }
-      this.intervalGetData();
+      this.isStop = false
+      this.intervalGetData();//继续定时请求
     },
   },
 };
 </script>
+<style lang="less">
+.deviceList-table{
+  .ant-table-pagination.ant-pagination{
+    display: none !important;
+  };
+}
+</style>

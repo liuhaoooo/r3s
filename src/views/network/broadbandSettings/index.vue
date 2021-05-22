@@ -17,7 +17,7 @@
         </a-radio-group>
       </a-form-model-item>
       <a-form-model-item label="启用桥接模式" v-show="linkType == 'Bridge'">
-        <span style="color:#16cdab">
+        <span class="mytext-color">
           设置后，设备将自动切换到桥接模式，接入一根网线到上行端口，即可实现LAN上行上网。
         </span>
       </a-form-model-item>
@@ -59,6 +59,9 @@ export default {
   mounted() {
     this.getData();
   },
+  beforeDestroy() {
+    clearInterval(window.getSuccessStatus);
+  },
   methods: {
     async getData() {
       let res = await this.$axiosRequest_get({
@@ -76,15 +79,17 @@ export default {
       this.$refs.linkTypePppoe.Form = res;
     },
     postData(json) {
-      json.PD_enable = json.PD_enable ? "1" : "0";
-      json.IPv6_add_prefix = json.IPv6_add.split("/")[1];
-      json.IPv6_add = json.IPv6_add.split("/")[0];
+      if(json.linkType != "Bridge"){
+        json.PD_enable = json.PD_enable ? "1" : "0";
+        json.IPv6_add_prefix = json.IPv6_add.split("/")[1];
+        json.IPv6_add = json.IPv6_add.split("/")[0];
+      }
       json.cmd = this.$CMD.BROADBAND_SETTING;
-      console.log(json);
       this.$loading_tool({ loading: true });
       this.$axiosRequest_post(json).then((res) => {
+        clearInterval(window.getSuccessStatus)
         if (res.success) {
-          store.dispatch("sysStatus/getNetworkInfo_post");//更新vuex状态
+          store.dispatch("sysStatus/getNetworkInfo");//更新vuex状态
           this.$loading_tool({ loading: false });
           this.$message.success(this.$t("tips.setSuccess"));
         } else {
@@ -92,6 +97,10 @@ export default {
           this.$message.error(this.$t("tips.setFail"));
         }
       });
+      clearInterval(window.getSuccessStatus)
+      window.getSuccessStatus = setInterval(()=>{
+        this.getSuccessStatus()
+      },3000)
     },
     postData_bridge() {
       let json = {
@@ -103,6 +112,18 @@ export default {
       if(this.linkType == "linkPPP" && this.$refs.linkTypeIp.Form.IPv6_wan_type == "Static"){
         this.$refs.linkTypePppoe.Form.IPv6_wan_type = "SLAAC"
       }
+    },
+    getSuccessStatus(){
+      this.$axiosRequest_get({
+        cmd: this.$CMD.GET_DEVICE_NAME,
+      }).then(res=>{
+        if(res.success){
+          clearInterval(window.getSuccessStatus)
+          this.$loading_tool({ loading: false });
+          this.$message.success(this.$t("tips.setSuccess"));
+          store.dispatch("sysStatus/getNetworkInfo");//更新vuex状态
+        }
+      })
     }
   },
 };

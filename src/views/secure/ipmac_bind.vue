@@ -44,10 +44,10 @@
           </a-radio-group>
         </a-form-model-item>
         <a-form-model-item :label="$t('firewall.ip')" prop="ip">
-          <a-input v-model="FormData.ip" />
+          <a-input v-model="FormData.ip" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('firewall.mac')" prop="mac">
-          <a-input v-model="FormData.mac" />
+          <a-input v-model="FormData.mac" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('firewall.remark')" prop="remark">
           <a-input v-model="FormData.remark" type="textarea" :maxLength="80" />
@@ -96,6 +96,7 @@
       >
         <a-input
           :key="col"
+          :maxLength="50"
           v-if="record.editable"
           style="margin: -5px 0"
           :value="text"
@@ -169,13 +170,13 @@ export default {
     rules() {
       if (this.FormData.ippro == "IPV4") {
         return {
-          ip: [{ validator: Validate.checkIP, trigger: "change" }],
-          mac: [{ validator: Validate.checkMac, trigger: "change" }],
+          ip: [{ validator: Validate.checkIP }],
+          mac: [{ validator: Validate.checkMac }],
         };
       } else {
         return {
-          ip: [{ validator: Validate.checkIPv6, trigger: "change" }],
-          mac: [{ validator: Validate.checkMac, trigger: "change" }],
+          ip: [{ validator: Validate.checkIPv6 }],
+          mac: [{ validator: Validate.checkMac }],
         };
       }
     },
@@ -198,7 +199,7 @@ export default {
       }
     },
     postData() {
-      let datas = [...this.data];
+      let datas = JSON.parse(JSON.stringify(this.data));
       for (let i in datas) {
         delete datas[i].key;
       }

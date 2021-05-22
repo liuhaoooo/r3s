@@ -12,10 +12,14 @@
         :label-col="{ span: 8 }"
         :wrapper-col="{ span: 10 }"
       >
+        <a-form-model-item label="攻击保护设置">
+          <a-switch v-model="Form.protect_enable"/>
+        </a-form-model-item>
         <a-form-model-item label="防火墙等级配置">
           <a-select
             v-model="Form.level"
             style="width: 200px; margin-right: 10px"
+            :disabled="!Form.protect_enable"
           >
             <a-select-option value="0">低级</a-select-option>
             <a-select-option value="1">中级</a-select-option>
@@ -25,20 +29,15 @@
             $t("tips.ok")
           }}</a-button>
         </a-form-model-item>
-        <a-form-model-item label="攻击保护设置">
-          <a-switch
-            v-model="Form.protect_enable"
-            @change="protect_enableChange"
-          />
-        </a-form-model-item>
         <a-divider>DMZ</a-divider>
         <div v-show="!isBradge_Relay">
           <a-form-model-item :label="$t('firewall.dmzEnable')">
-            <a-switch v-model="Form.enabled" />
+            <a-switch v-model="Form.enabled" @change="dmzChange"/>
           </a-form-model-item>
           <a-form-model-item :label="$t('firewall.ip')" prop="ip">
             <a-input
               v-model="Form.ip"
+              :maxLength="50"
               :disabled="!Form.enabled"
               style="width: 200px; margin-right: 10px"
             />
@@ -76,7 +75,7 @@ export default {
         enabled: true,
       },
       rules: {
-        ip: [{ validator: Validate.checkIP, trigger: "change" }],
+        ip: [{ validator: Validate.checkIP }],
       },
     };
   },
@@ -85,16 +84,17 @@ export default {
   },
   methods: {
     async getData() {
-      //等级
-      let res_level = await this.$axiosRequest_get({
+      //等级+攻击保护设置
+      let res = await this.$axiosRequest_get({
         cmd: this.$CMD.SECURITY_LEVEL,
       });
-      this.Form.level = res_level.level || "0";
+      this.Form.level = res.level || "0";
+      this.Form.protect_enable = res.protect_enable == "1";
       //攻击保护设置
-      let res_protect = await this.$axiosRequest_get({
-        cmd: this.$CMD.PROTECTED_SETTING,
-      });
-      this.Form.protect_enable = res_protect.protect_enable == "1";
+      // let res_protect = await this.$axiosRequest_get({
+      //   cmd: this.$CMD.PROTECTED_SETTING,
+      // });
+      // this.Form.protect_enable = res_protect.protect_enable == "1";
       //dmz
       let res_dmz = await this.$axiosRequest_get({
         cmd: this.$CMD.NETWORK_SERVICE,
@@ -133,26 +133,15 @@ export default {
         }
       });
     },
-    //攻击保护设置
-    protect_enableChange(e) {
-      this.$loading_tool({ loading: true });
-      this.$axiosRequest_post({
-        protect_enable: e ? "1" : "0",
-        cmd: this.$CMD.PROTECTED_SETTING,
-      }).then((res) => {
-        this.$loading_tool({ loading: false });
-        if (res.success) {
-          this.$message.success(this.$t("tips.setSuccess"));
-        } else {
-          this.$message.error(this.$t("tips.setFail"));
-        }
-      });
+    dmzChange(e){
+      !e && this.$refs['Form'].clearValidate()
     },
-    //等级
+    //等级+攻击保护设置
     postData_level() {
       this.$loading_tool({ loading: true });
       this.$axiosRequest_post({
         level: this.Form.level,
+        protect_enable: this.Form.protect_enable ? "1" : "0",
         cmd: this.$CMD.SECURITY_LEVEL,
       }).then((res) => {
         this.$loading_tool({ loading: false });
@@ -163,6 +152,21 @@ export default {
         }
       });
     },
+    //攻击保护设置
+    // protect_enableChange(e) {
+    //   this.$loading_tool({ loading: true });
+    //   this.$axiosRequest_post({
+    //     protect_enable: e ? "1" : "0",
+    //     cmd: this.$CMD.PROTECTED_SETTING,
+    //   }).then((res) => {
+    //     this.$loading_tool({ loading: false });
+    //     if (res.success) {
+    //       this.$message.success(this.$t("tips.setSuccess"));
+    //     } else {
+    //       this.$message.error(this.$t("tips.setFail"));
+    //     }
+    //   });
+    // },
   },
 };
 </script>

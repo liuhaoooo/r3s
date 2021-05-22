@@ -34,10 +34,10 @@ export const wifiWorkMode_24 = [
 ];
 export const txOption_24 = [
     { name: "100%", value: "100" },
-    { name: "75%", value: "75" },
-    { name: "50%", value: "50" },
-    { name: "35%", value: "35" },
-    { name: "15%", value: "15" },
+    { name: "80%", value: "80" },
+    { name: "60%", value: "60" },
+    { name: "40%", value: "40" },
+    { name: "20%", value: "20" },
 ];
 //5gadv
 export const bandWidthOption_5 = [
@@ -58,10 +58,10 @@ export const wifiWorkMode_5 = [
 ];
 export const txOption_5 = [
     { name: "100%", value: "100" },
-    { name: "75%", value: "75" },
-    { name: "50%", value: "50" },
-    { name: "35%", value: "35" },
-    { name: "15%", value: "15" },
+    { name: "80%", value: "80" },
+    { name: "60%", value: "60" },
+    { name: "40%", value: "40" },
+    { name: "20%", value: "20" },
 ];
 export const countryCodeOption = [
     { "name": "CHINA", "value": "CN" },
@@ -271,10 +271,12 @@ const channel_5g_fcc_world_wide = [
 export const channelOption_2g = {
     "CN": channel_2g_default,
     "FCC": channel_2g_default,
-    "WORLD-WIDE": channel_2g_default
+    "WORLD-WIDE": channel_2g_default,
+    "US":channel_2g_default
 }
 export const channelOption_5g = {
     "CN": channel_5g_default,
     "FCC": channel_5g_fcc_world_wide,
-    "WORLD-WIDE": channel_5g_fcc_world_wide
+    "WORLD-WIDE": channel_5g_fcc_world_wide,
+    "US":channel_5g_default
 }

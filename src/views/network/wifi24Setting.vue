@@ -4,7 +4,7 @@
       :labelText="$t('help.title5')"
       :spanText="$t('help.details5')"
     />
-    <div class="tab_wifi">
+    <div class="tab_wifi" v-if="account_level=='1'">
       <a-radio-group
         default-value="0"
         button-style="solid"
@@ -25,13 +25,11 @@
         :wrapper-col="{ span: 10 }"
       >
         <a-form-model-item :label="$t('wifiSet.wifiEnable')">
-          <a-switch v-model="Form.wifiOpen" />
-        </a-form-model-item>
-        <a-form-model-item label="WMM">
-          <a-switch v-model="Form.wifiwmm" :disabled="!Form.wifiOpen" />
+          <a-switch v-model="Form.wifiOpen" @change="wifiOpenChange"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('wifiSet.wifiName')" prop="ssid">
           <a-input
+            :maxLength="32"
             :disabled="!Form.wifiOpen"
             v-model="Form.ssid"
             style="width: 60%; margin-right: 10px"
@@ -59,14 +57,19 @@
         </a-form-model-item>
         <div v-if="Form.authenticationType != '0'">
           <a-form-model-item :label="$t('wifiSet.password')" prop="key">
-            <a-input-password v-model="Form.key" :disabled="!Form.wifiOpen" />
+            <a-input-password v-model="Form.key" :disabled="!Form.wifiOpen" :maxLength="32"/>
           </a-form-model-item>
         </div>
       </a-form-model>
       <div class="form-footer">
-        <a-button type="primary" @click="submitForm('Form')">{{
+        <a-tooltip placement="left">
+          <template slot="title" v-if="is5G">
+            <span>5G优选已开启</span>
+          </template>
+          <a-button type="primary" @click="submitForm('Form')" :disabled="is5G">{{
           $t("tips.ok")
         }}</a-button>
+        </a-tooltip>
         <a-button style="margin-left: 20px" @click="getData">{{
           $t("tips.cancel")
         }}</a-button>
@@ -75,6 +78,7 @@
   </div>
 </template>
 <script>
+import store from "../../store";
 import { Base64 } from "js-base64";
 import headerInfo from "../../components/headerInfo.vue";
 import { Validate } from "../../config/formValidate.js";
@@ -92,16 +96,19 @@ export default {
         broadcast: false, //隐藏Wi-Fi
         authenticationType: "2", //加密方式
         key: "", //wifi密码
-        wifiwmm: true, //WMM
       },
       //options
       authenticationOption,
       //rules
       rules: {
-        ssid: [{ validator: Validate.Ssid, trigger: "change" }],
-        key: [{ validator: Validate.WifiPwd, trigger: "change" }],
+        ssid: [{ validator: Validate.Ssid }],
+        key: [{ validator: Validate.WifiPwd }],
       },
     };
+  },
+  computed:{
+    is5G: () => store.getters["sysStatus/is5G"],
+    account_level: () => store.getters["sysStatus/account_level"],
   },
   mounted() {
     this.getData();
@@ -121,7 +128,6 @@ export default {
       this.Form.ssid = Base64.decode(this.Form.ssid);
       this.Form.wifiOpen = this.Form.wifiOpen === "1";
       this.Form.broadcast = this.Form.broadcast === "1";
-      this.Form.wifiwmm = this.Form.wifiwmm === "1";
     },
     postData() {
       this.$loading_tool({ loading: true });
@@ -131,17 +137,15 @@ export default {
         key: this.Form.key,
         broadcast: this.Form.broadcast ? "1" : "0",
         authenticationType: this.Form.authenticationType,
-        wifiwmm: this.Form.wifiwmm ? "1" : "0",
         cmd: this.$CMD.WIRELESS_CONFIG,
         subcmd: this.subcmd,
       };
-      console.log(json);
       this.$axiosRequest_post(json).then((res) => {
+        this.$loading_tool({ loading: false });
+        store.dispatch("sysStatus/getWifiInfo"); //更新vuex wifi信息
         if (res.success) {
-          this.$loading_tool({ loading: false });
           this.$message.success(this.$t("tips.setSuccess"));
         } else {
-          this.$loading_tool({ loading: false });
           this.$message.error(this.$t("tips.setFail"));
         }
       });
@@ -152,6 +156,9 @@ export default {
     wifiChange(e) {
       this.subcmd = Number(e.target.value);
       this.getData();
+    },
+    wifiOpenChange(e){
+      !e && this.$refs['Form'].clearValidate()
     },
     submitForm(formName) {
       if (!this.Form.wifiOpen) {

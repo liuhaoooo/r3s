@@ -2,15 +2,15 @@ import { axiosRequest_post, axiosRequest_get } from "../../utils/request";
 import { CMD } from "../../config/cmd";
 import { date_tool,parseHexPageHide_tool } from "../../utils/tools";
 const state = {
-    themeColor:"#16cdab",
+    isMore:false,
+    themeColor:"#16cdab",//主题颜色
     needRedirect: false, //是否需要重定向
-    configInfo: {},
-    deviceInfo: {},
+    configInfo: {},//设备配置信息
+    deviceInfo: {},//设备系统信息
     wifiInfo_24: {},//2.4Gwifi 信息
     wifiInfo_5: {},//5Gwifi 信息
     meshStatus: {},//MESH状态
-    networkInfo: {},//网络状态
-    networkInfo_post: {},
+    networkInfo: {},//网络状态get
 }
 const getters = {
     deviceInfo: (state) => {
@@ -36,21 +36,29 @@ const getters = {
     },
     //是否中继模式
     isRelay:(state)=>{
-        return state.networkInfo_post.real_wan_mode == "APClient"
+        return state.networkInfo.real_wan_mode == "APClient"
     },
     //是否桥接中继模式
     isBradge_Relay:(state)=>{
-        return state.networkInfo_post.real_wan_mode == "Bridge" || state.networkInfo_post.real_wan_mode == "APClient"
+        return state.networkInfo.real_wan_mode == "Bridge" || state.networkInfo.real_wan_mode == "APClient"
     },
-    //主wifi开关
+    //主2.4wifi开关
     wifiOpen_24:(state) => {
         return state.wifiInfo_24.wifiOpen == '1'
     },
+    //主5wifi开关
     wifiOpen_5:(state) => {
         return state.wifiInfo_5.wifiOpen == '1'
     },
+    //是否5G优选
+    is5G:(state) => {
+        return state.wifiInfo_5.wifiSames == '1'
+    },
 }
 const mutations = {
+    setIsMore: (state, data) => {
+        state.isMore = data
+    },
     setThemeColor: (state, data) => {
         state.themeColor = data
     },
@@ -75,9 +83,6 @@ const mutations = {
     setNetworkInfo: (state, data) => {
         state.networkInfo = data
     },
-    setNetworkInfo_post: (state, data) => {
-        state.networkInfo_post = data
-    },
 }
 const actions = {
     getConfigInfo: async (state, data) => {
@@ -101,10 +106,6 @@ const actions = {
     getNetworkInfo: async (state, data) => {
         let res = await axiosRequest_get({ cmd: CMD.NETWORK_INFO });
         state.commit('setNetworkInfo', res)
-    },
-    getNetworkInfo_post: async (state, data) => {
-        let res = await axiosRequest_post({ cmd: CMD.NETWORK_INFO });
-        state.commit('setNetworkInfo_post', res)
     },
 }
 export default { state, getters, mutations, actions }

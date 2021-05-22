@@ -22,7 +22,7 @@
             >
           </a-select>
         </a-form-item>
-        <a-form-item :label="$t('wifiSet.countryCode')">
+        <a-form-item :label="$t('wifiSet.countryCode')" v-if="account_level=='1'">
           <a-select v-model="Form_adv.countryCode">
             <a-select-option
               v-for="(item, index) in countryCodeOption"
@@ -62,14 +62,19 @@
             >
           </a-select>
         </a-form-item>
-        <a-form-model-item :label="$t('wifiSet.maxNum')" prop="maxNum">
-          <a-input v-model.number="Form_adv.maxNum" />
-        </a-form-model-item>
-        <a-form-model-item :label="$t('wifiSet.connectNum')" prop="connectNum">
-          <a-input v-model="Form_adv.connectNum" />
-        </a-form-model-item>
-        <a-form-model-item :label="$t('wifiSet.eliminateNum')" prop="eliminateNum">
-          <a-input v-model="Form_adv.eliminateNum" />
+        <div v-if="account_level=='1'">
+          <a-form-model-item :label="$t('wifiSet.maxNum')" prop="maxNum">
+            <a-input v-model.number="Form_adv.maxNum" :maxLength="32"/>
+          </a-form-model-item>
+          <a-form-model-item :label="$t('wifiSet.connectNum')" prop="connectNum">
+            <a-input v-model="Form_adv.connectNum" :maxLength="32"/>
+          </a-form-model-item>
+          <a-form-model-item :label="$t('wifiSet.eliminateNum')" prop="eliminateNum">
+            <a-input v-model="Form_adv.eliminateNum" :maxLength="32"/>
+          </a-form-model-item>
+        </div>
+        <a-form-model-item label="WMM">
+          <a-switch v-model="Form_adv.wifiwmm" />
         </a-form-model-item>
       </a-form-model>
       <div class="form-footer">
@@ -84,6 +89,7 @@
   </div>
 </template>
 <script>
+import store from "../../store";
 import headerInfo from "../../components/headerInfo.vue";
 import { Validate } from "../../config/formValidate.js";
 import {
@@ -114,6 +120,7 @@ export default {
         countryCode: "CN", //国家码
         connectNum: "0", //接入阈值
         eliminateNum: "0", //剔除阈值
+        wifiwmm: true, //WMM
       },
       //options
       bandWidthOption: bandWidthOption_24,
@@ -121,16 +128,17 @@ export default {
       txOption: txOption_24,
       countryCodeOption,
       rules: {
-        maxNum: [{ validator: checkNum1, trigger: "change" }],
-        eliminateNum: [{ validator: checkNum, trigger: "change" }],
-        connectNum: [{ validator: checkNum, trigger: "change" }],
+        maxNum: [{ validator: checkNum1 }],
+        eliminateNum: [{ validator: checkNum }],
+        connectNum: [{ validator: checkNum }],
       },
     };
   },
   computed:{
     channelOption(){
       return channelOption_2g[this.Form_adv.countryCode]
-    }
+    },
+    account_level: () => store.getters["sysStatus/account_level"],
   },
   watch:{
     channelOption(){
@@ -151,6 +159,7 @@ export default {
           this.Form_adv[key] = res_adv[key];
         }
       }
+      this.Form_adv.wifiwmm = this.Form_adv.wifiwmm === "1";
     },
     postData() {
       this.$loading_tool({ loading: true });
@@ -163,6 +172,7 @@ export default {
         countryCode:this.Form_adv.countryCode,
         eliminateNum: this.Form_adv.eliminateNum,
         connectNum: this.Form_adv.connectNum,
+        wifiwmm: this.Form_adv.wifiwmm ? "1" : "0",
         cmd: this.$CMD.WIRELESS_ADVANCE,
       };
       this.$axiosRequest_post(json).then((res) => {

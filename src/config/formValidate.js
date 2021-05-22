@@ -1,16 +1,31 @@
 import { i18n } from '../i18n'
 export const Validate = {
     checkNull: (rule, value, callback) => {
-        if (!value) {
+        if (/\s/.test(value) || !value) {
             return callback(new Error(i18n.t('tips.empty')));
         } else {
             callback();
         }
     },
-    Ssid: (rule, value, callback) => {
+    //普通校验
+    normal: (rule, value, callback) => {
+        const reg1 = /^[0-9a-zA-Z!*#:\(\)\+\-\.\/%=\?@\^_\{|\}~\x20]{1,32}$/;
+        const reg_cn = new RegExp("[\\u4E00-\\u9FFF]+", "g");
+        const reg = /[\\\'\"]/m
         if (!value) {
             return callback(new Error(i18n.t('tips.empty')));
-        } else if (value.length < 4 || value.length > 32 || /\s/.test(value)) {
+        } else if (/\s/.test(value) || reg_cn.test(value) || !reg1.test(value) || reg.test(value)) {
+            callback(new Error(i18n.t('tips.formatError')));
+        } else {
+            callback();
+        }
+    },
+    Ssid: (rule, value, callback) => {
+        const reg_cn = new RegExp("[\\u4E00-\\u9FFF]+", "g");
+        const reg = /[\\\'\"]/m
+        if (!value) {
+            return callback(new Error(i18n.t('tips.empty')));
+        } else if (value.length < 4 || value.length > 32 || /\s/.test(value) || reg_cn.test(value) || reg.test(value)) {
             callback(new Error(i18n.t('tips.formatError')));
         } else {
             callback();
@@ -20,9 +35,10 @@ export const Validate = {
     WifiPwd: (rule, value, callback) => {
         const reg1 = /^[0-9a-zA-Z!*#:\(\)\+\-\.\/%=\?@\^_\{|\}~\x20]{8,32}$/;
         const reg_cn = new RegExp("[\\u4E00-\\u9FFF]+", "g");
+        const reg = /[\\\'\"]/m
         if (!value) {
             return callback(new Error(i18n.t('tips.empty')));
-        } else if (/\s/.test(value) || reg_cn.test(value) || !reg1.test(value)) {
+        } else if (/\s/.test(value) || reg_cn.test(value) || !reg1.test(value) || reg.test(value)) {
             callback(new Error(i18n.t('tips.formatError')));
         } else {
             callback();
@@ -93,7 +109,7 @@ export const Validate = {
             callback(new Error(i18n.t('tips.formatError')));
         }
     },
-    //ipv6
+    //ipv6带前缀
     checkIPv6_prefix: (rule, value, callback) => {
         if (!value) {
             return callback(new Error(i18n.t('tips.empty')));

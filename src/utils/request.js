@@ -5,7 +5,7 @@ import { message } from 'ant-design-vue';
 import { rsaDec_tool, loading_tool } from "../utils/tools";
 message.config({
   duration: 3,
-  maxCount: 3,
+  maxCount: 1,
 });
 const baseURL = '/cgi-bin/http.cgi'
 const request = axios.create({
@@ -25,25 +25,31 @@ request.interceptors.response.use((response) => {
   if (!response.data.success && response.data.message == "NO_AUTH") {
     router.push({ name: "Login" });
     loading_tool({ loading: false })
-    if(store.state.sysStatus.needRedirect)window.location.reload();
+    if(store.state.sysStatus.needRedirect){//如果是升级导致的跳转，强制刷新页面
+      setTimeout(()=>{
+        window.location.reload();
+      },2000)
+    }
   }
   return response.data;
 }, (error) => {
   return Promise.reject(error);
 });
-
+//method:'GET'
 export const axiosRequest_get = async (data) => {
   data.method = 'GET'
   data.sessionId = rsaDec_tool(sessionStorage['sessionId']) || ''
   let res = await request({ data })
   return res
 }
+//method:'POST'
 export const axiosRequest_post = async (data) => {
   data.method = 'POST'
   data.sessionId = rsaDec_tool(sessionStorage['sessionId']) || ''
   let res = await request({ data })
   return res
 }
+//上传文件
 export const axiosRequest_upload = async (data, options) => {
   data.method = 'POST'
   data.sessionId = rsaDec_tool(sessionStorage['sessionId']) || ''

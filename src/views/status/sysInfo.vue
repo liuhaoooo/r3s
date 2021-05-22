@@ -37,10 +37,10 @@
     </div>
     <br />
     <a-descriptions bordered>
-      <a-descriptions-item label="型号">{{ deviceInfo.idu_dev_type }}</a-descriptions-item>
-      <a-descriptions-item label="设备厂商">-----</a-descriptions-item>
-      <a-descriptions-item label="SN"> ----- </a-descriptions-item>
-      <a-descriptions-item label="软件版本">{{ deviceInfo.fake_version }}</a-descriptions-item>
+      <a-descriptions-item label="型号">{{ deviceInfo.board_type }}</a-descriptions-item>
+      <a-descriptions-item label="设备厂商">{{ deviceInfo.device_firm }}</a-descriptions-item>
+      <a-descriptions-item label="SN">{{ deviceInfo.device_sn }}</a-descriptions-item>
+      <a-descriptions-item label="软件版本">{{ account_level=='1'?deviceInfo.real_fwversion:deviceInfo.fake_version }}</a-descriptions-item>
       <a-descriptions-item label="硬件版本">{{ deviceInfo.hwversion }}</a-descriptions-item>
       <a-descriptions-item label="CMEI">{{ deviceInfo.device_cmei }}</a-descriptions-item>
       <!-- 超级账户显示 -->
@@ -63,7 +63,7 @@ import { mapActions, mapState, mapGetters } from "vuex";
 const accountArr = {
   "1":"superadmin",
   "2":"senior",
-  "3":"admin"
+  "3":"user"
 }
 export default {
   data() {

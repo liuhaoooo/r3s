@@ -16,13 +16,13 @@
           <a-switch v-model="Form.radio" @change="switchChange" />
         </a-form-model-item>
         <a-form-model-item :label="$t('andlink.if6')" prop="IF6url">
-          <a-input v-model="Form.IF6url" :disabled="!Form.radio" />
+          <a-input v-model="Form.IF6url" :disabled="!Form.radio" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('andlink.if5')" prop="IF5url">
-          <a-input v-model="Form.IF5url" :disabled="!Form.radio" />
+          <a-input v-model="Form.IF5url" :disabled="!Form.radio" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('andlink.ifa')" prop="IFAurl">
-          <a-input v-model="Form.IFAurl" :disabled="!Form.radio" />
+          <a-input v-model="Form.IFAurl" :disabled="!Form.radio" :maxLength="50"/>
         </a-form-model-item>
         <a-form-item :label="$t('andlink.province')">
           <a-select v-model="Form.province" :disabled="!Form.radio">
@@ -65,9 +65,9 @@ export default {
         radio: true,
       },
       rules: {
-        IF5url: [{ validator: Validate.checkNull, trigger: "change" }],
-        IF6url: [{ validator: Validate.checkNull, trigger: "change" }],
-        IFAurl: [{ validator: Validate.checkNull, trigger: "change" }],
+        // IF5url: [{ validator: Validate.checkNull }],
+        // IF6url: [{ validator: Validate.checkNull }],
+        // IFAurl: [{ validator: Validate.checkNull }],
       },
     };
   },

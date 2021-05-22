@@ -6,10 +6,10 @@
     />
     <a-form-model ref="Form" layout="inline" :model="Form" :rules="rules">
       <a-form-model-item :label="$t('diagnosis.ipurl')" prop="url">
-        <a-input v-model="Form.url" :disabled="loading" />
+        <a-input v-model="Form.url" :disabled="loading" :maxLength="50"/>
       </a-form-model-item>
       <a-form-model-item :label="$t('diagnosis.port')" prop="port">
-        <a-input v-model="Form.port" :disabled="loading" />
+        <a-input v-model="Form.port" :disabled="loading" :maxLength="50"/>
       </a-form-model-item>
       <a-form-model-item>
         <a-button type="primary" v-show="loading" @click="stopClick"
@@ -47,8 +47,8 @@ export default {
         url: "192.168.0.1",
       },
       rules: {
-        port: [{ validator: Validate.checkPort, trigger: "change" }],
-        url: [{ validator: Validate.checkNull, trigger: "change" }],
+        port: [{ validator: Validate.checkPort }],
+        url: [{ validator: Validate.checkNull }],
       },
     };
   },

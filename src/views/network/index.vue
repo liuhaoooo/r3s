@@ -69,7 +69,7 @@ export default {
   mounted() {
     let key = this.$route.meta.key;
     this.openKeys = [key.split("-")[0]];
-    this.selectedKeys = [this.$route.meta.key];
+    this.selectedKeys = [key];
   },
   methods: {
     onOpenChange(openKeys) {
@@ -111,6 +111,13 @@ export default {
         }
       },
     },
+    $route: {
+      handler(to, from) {
+        if(from.name == "Relay"){
+          this.openKeys = [to.meta.key.split("-")[0]];
+        }
+      }
+    }
   },
 };
 </script>

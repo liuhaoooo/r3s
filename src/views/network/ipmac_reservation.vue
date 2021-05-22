@@ -29,10 +29,10 @@
         :wrapper-col="{ span: 12 }"
       >
         <a-form-model-item :label="$t('firewall.ip')" prop="ip">
-          <a-input v-model="FormData.ip" />
+          <a-input v-model="FormData.ip" :maxLength="50"/>
         </a-form-model-item>
         <a-form-model-item :label="$t('firewall.mac')" prop="mac">
-          <a-input v-model="FormData.mac" />
+          <a-input v-model="FormData.mac" :maxLength="50"/>
         </a-form-model-item>
       </a-form-model>
     </a-modal>
@@ -51,6 +51,7 @@
       >
         <a-input
           :key="col"
+          :maxLength="50"
           v-if="record.editable"
           style="margin: -5px 0"
           :value="text"
@@ -153,8 +154,8 @@ export default {
         mac: "",
       },
       rules: {
-        ip: [{ validator: checkIP, trigger: "change" }],
-        mac: [{ validator: Validate.checkMac, trigger: "change" }],
+        ip: [{ validator: checkIP }],
+        mac: [{ validator: Validate.checkMac }],
       },
     };
   },
@@ -177,7 +178,7 @@ export default {
       }
     },
     postData() {
-      let datas = [...this.data];
+      let datas = JSON.parse(JSON.stringify(this.data));
       for (let i in datas) {
         delete datas[i].key;
       }

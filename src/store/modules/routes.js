@@ -4,7 +4,7 @@ import { pageHideCheck_tool } from "../../utils/tools";
 const state = {
     networkRoutes: [
         {
-            title: "broadbandSet",
+            title: "networkSet",
             key: "1",
             show: true,
             disabled: false,
@@ -20,6 +20,13 @@ const state = {
                     title: "relay",
                     key: "1-2",
                     route: "Relay",
+                    show: true,
+                    disabled: false,
+                },
+                {
+                    title: "iptv",
+                    key: "1-3",
+                    route: "Iptv",
                     show: true,
                     disabled: false,
                 },
@@ -114,35 +121,35 @@ const state = {
             ]
         },
         {
-            title: "routeSet",
+            title: "andlink",
             key: "6",
             show: true,
             disabled: false,
             child: [
                 {
-                    title: "routeSet",
+                    title: "andlink",
                     key: "6-1",
-                    route: "RouteList",
+                    route: "AndLink",
                     show: true,
                     disabled: false,
                 }
             ]
         },
         {
-            title: "andlink",
+            title: "routeSet",
             key: "7",
-            show: true,
+            show: sysStatus.default.getters["account_level"] == '1',
             disabled: false,
             child: [
                 {
-                    title: "andlink",
+                    title: "routeSet",
                     key: "7-1",
-                    route: "AndLink",
-                    show: true,
+                    route: "RouteList",
+                    show: sysStatus.default.getters["account_level"] == '1',
                     disabled: false,
                 }
             ]
-        }
+        },
     ],
     firewallRoutes: [
         {
@@ -160,30 +167,30 @@ const state = {
             route: "Filter",
         },
         {
-            title: "urlFilter",
-            key: "3",
-            show: true,
-            disabled: false,
-            route: "UrlFilter",
-        },
-        {
             title: "ipmac",
-            key: "4",
+            key: "3",
             show: true,
             disabled: false,
             route: "IpmacBind",
         },
         {
             title: "portMapping",
-            key: "5",
+            key: "4",
             show: true,
             disabled: false,
             route: "PortMapping",
         },
         {
+            title: "urlFilter",
+            key: "5",
+            show: sysStatus.default.getters["account_level"] == '1',
+            disabled: false,
+            route: "UrlFilter",
+        },
+        {
             title: "filter_acl",
             key: "6",
-            show: true,
+            show: sysStatus.default.getters["account_level"] == '1',
             disabled: false,
             route: "Filter_acl",
         },
@@ -204,8 +211,22 @@ const state = {
             route: "ChangePassword",
         },
         {
-            title: "sysSetting",
+            title: "timeZoneSetting",
             key: "3",
+            show: sysStatus.default.getters["account_level"] == '1',
+            disabled: false,
+            route: "TimeZone",
+        },
+        {
+            title: "scheduledRestart",
+            key: "4",
+            show: sysStatus.default.getters["account_level"] == '1',
+            disabled: false,
+            route: "ScheduledRestart",
+        },
+        {
+            title: "sysSetting",
+            key: "5",
             show: sysStatus.default.getters["account_level"] == '1',
             disabled: false,
             route: "SysSetting",
@@ -251,7 +272,7 @@ const getters = {
                 }
             }
             pages[n]["child"] = newChild;
-            if (pages[n].show === true && pages[n].child.length > 0) {
+            if ((pageHideCheck_tool(pages[n].show) || pages[n].show === true) && pages[n].child.length > 0) {
                 newPage.push(pages[n])
             }
         }
